@@ -1,6 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import UploadsComponent from '../components/uploads';
+import RagbotComponent from '../components/ragbot';
 
 export default function BizMindPage() {
     const router = useRouter();
@@ -27,15 +29,9 @@ export default function BizMindPage() {
 
             <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                 <div className="px-4 py-6 sm:px-0">
-                    <div className="border-4 border-dashed border-gray-200 rounded-lg h-96 p-8">
-                        <div className="text-center">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                                BizMind Page
-                            </h2>
-                            <p className="text-gray-600">
-                                This is a dummy page for BizMind. Future features will be implemented here.
-                            </p>
-                        </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <UploadsComponent />
+                        <RagbotComponent />
                     </div>
                 </div>
             </main>
