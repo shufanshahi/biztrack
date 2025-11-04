@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import UploadsComponent from '../components/uploads';
-import RagbotComponent from '../components/ragbot';
+import UploadsComponent from '../../components/uploads';
+import RagbotComponent from '../../components/ragbot';
 
 export default function BizMindPage() {
     const router = useRouter();
