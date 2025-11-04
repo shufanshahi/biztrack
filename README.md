@@ -73,6 +73,10 @@ A full-stack business management application with Next.js frontend and Express.j
    ```bash
    docker compose logs -f
    ```
+   For container specific logs
+   ```bash
+   docker compose logs -f backend
+   ```
 
 4. Access the application:
    - Frontend: http://localhost:3000
