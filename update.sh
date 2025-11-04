@@ -6,13 +6,13 @@
 echo "🔄 Updating BizTrack..."
 
 echo "📦 Installing backend dependencies..."
-docker compose exec backend npm install
+sudo docker compose exec backend npm install
 
 echo "📦 Installing frontend dependencies..."
-docker compose exec frontend npm install
+sudo docker compose exec frontend npm install
 
 echo "🔄 Restarting services..."
-docker compose restart
+sudo docker compose restart
 
 echo "✅ Update complete!"
-echo "💡 If you encounter issues, run: docker compose build"
+echo "💡 If you encounter issues, run: sudo docker compose build"

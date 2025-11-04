@@ -74,13 +74,13 @@ export default function DashboardPage() {
                                 </div>
 
                                 <div className="bg-white p-6 rounded-lg shadow">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">My Businesses</h3>
-                                    <p className="text-sm text-gray-600 mb-4">Manage your business information and operations.</p>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Quick Actions</h3>
+                                    <p className="text-sm text-gray-600">Manage your business operations from here.</p>
                                     <button
-                                        onClick={() => router.push('/businesses')}
-                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                                        onClick={() => router.push('/bizmind')}
+                                        className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
                                     >
-                                        View Businesses
+                                        Go to BizMind
                                     </button>
                                 </div>
 

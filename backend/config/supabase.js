@@ -14,15 +14,6 @@ const supabase = createClient(
             autoRefreshToken: true,
             persistSession: false,
             detectSessionInUrl: false
-        },
-        global: {
-            fetch: (url, options = {}) => {
-                return fetch(url, {
-                    ...options,
-                    // Increase timeout to 30 seconds
-                    signal: AbortSignal.timeout(30000),
-                });
-            }
         }
     }
 );
