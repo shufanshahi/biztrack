@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 
 export default function DashboardPage() {
     const { user, loading, logout } = useAuth();
@@ -74,8 +74,14 @@ export default function DashboardPage() {
                                 </div>
 
                                 <div className="bg-white p-6 rounded-lg shadow">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Quick Actions</h3>
-                                    <p className="text-sm text-gray-600">Manage your business operations from here.</p>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">My Businesses</h3>
+                                    <p className="text-sm text-gray-600 mb-4">Manage your business information and operations.</p>
+                                    <button
+                                        onClick={() => router.push('/businesses')}
+                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                                    >
+                                        View Businesses
+                                    </button>
                                 </div>
 
                                 <div className="bg-white p-6 rounded-lg shadow">
