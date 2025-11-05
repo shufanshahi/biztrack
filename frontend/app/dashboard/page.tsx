@@ -35,7 +35,7 @@ const Dashboard = () => {
           alt="Business Dashboard"
           className="w-full h-full object-cover opacity-50"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20" />
+  {/* Overlay removed for full transparency */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-black mb-2">
@@ -96,7 +96,7 @@ const Dashboard = () => {
               title="Data Upload"
               description="Import Excel/CSV files with AI-powered field mapping"
               icon="upload"
-              href="/data-upload"
+              href="/businesses"
               gradient="from-primary to-primary-hover"
             />
             <FeatureCard
@@ -131,7 +131,7 @@ const Dashboard = () => {
               title="AI Assistant"
               description="Natural language queries for business insights"
               icon="ai"
-              href="/ai-assistant"
+              href="/bizmind"
               gradient="from-accent/80 to-primary/80"
             />
           </div>
