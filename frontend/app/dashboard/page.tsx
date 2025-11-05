@@ -19,12 +19,7 @@ const Dashboard = () => {
               <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                 <TrendingUp className="h-6 w-6 text-primary-foreground" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  BizTrack
-                </h1>
-                <p className="text-xs text-muted-foreground">AI-Powered Business Intelligence</p>
-              </div>
+              <span className="text-2xl font-bold text-black">BizTrack</span>
             </div>
             <Button variant="ghost" size="icon">
               <Menu className="h-5 w-5" />
@@ -34,10 +29,16 @@ const Dashboard = () => {
       </header>
 
       {/* Hero Section */}
-      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-primary/20 via-accent/20 to-primary/10">
+      <div className="relative h-48 overflow-hidden">
+        <img
+          src="/dashboard-hero.jpg"
+          alt="Business Dashboard"
+          className="w-full h-full object-cover opacity-50"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+            <h2 className="text-3xl md:text-4xl font-bold text-black mb-2">
               Welcome Back! 👋
             </h2>
             <p className="text-muted-foreground">
