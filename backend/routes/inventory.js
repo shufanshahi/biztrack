@@ -116,24 +116,50 @@ router.get('/optimize/:businessId', authenticateUser, async (req, res) => {
         }
 
         console.log(`[INVENTORY OPTIMIZE] Building AI prompt...`);
-        // Build prompt for Groq
+        // Build prompt for Groq - Summarize data to reduce payload size
+        const productSummary = productData?.slice(0, 10).map(p => ({
+            id: p.product_id,
+            name: p.product_name,
+            price: p.price,
+            selling_price: p.selling_price,
+            category: p.category_id,
+            brand: p.brand_id
+        })) || [];
+
+        const salesSummary = salesData?.slice(0, 10).map(s => ({
+            product_id: s.product_id,
+            product_name: s.product_name,
+            total_units_sold: s.total_units_sold,
+            total_revenue: s.total_revenue,
+            last_sale: s.last_sale,
+            is_dead_stock: s.is_dead_stock
+        })) || [];
+
+        const leadTimeSummary = leadTimeData?.slice(0, 5).map(lt => ({
+            supplier_id: lt.supplier_id,
+            product_id: lt.product_id,
+            lead_time_days: lt.lead_time_days
+        })) || [];
+
         const prompt = `You are an advanced AI inventory optimization expert. Analyze the following merchandising business data and provide actionable recommendations.
 
 **Business Context:**
 - Business: ${business.name}
 - Available Capital: $${capitalData?.total_net_capital || 0}
+- Total Products: ${productData?.length || 0}
+- Total Sales Records: ${salesData?.length || 0}
 
-**Product Inventory (${productData?.length || 0} products):**
-${JSON.stringify(productData?.slice(0, 50) || [], null, 2)}
+**Product Summary (Top 10):**
+${productSummary.map(p => `- ${p.name}: $${p.selling_price} (Cost: $${p.price})`).join('\n')}
 
-**Sales History:**
-${JSON.stringify(salesData?.slice(0, 50) || [], null, 2)}
+**Sales Summary (Top 10):**
+${salesSummary.map(s => `- ${s.product_name}: ${s.total_units_sold} units sold, $${s.total_revenue} revenue, Dead stock: ${s.is_dead_stock}`).join('\n')}
 
-**Supplier Lead Times:**
-${JSON.stringify(leadTimeData || [], null, 2)}
+**Supplier Lead Times (Top 5):**
+${leadTimeSummary.map(lt => `- Product ${lt.product_id}: ${lt.lead_time_days} days`).join('\n')}
 
 **Co-Purchased Products:**
-${JSON.stringify(coPurchaseData?.slice(0, 10) || [], null, 2)}
+${coPurchaseData?.slice(0, 5).map(cp => `- ${cp.product_a_name} + ${cp.product_b_name}: ${cp.times_purchased_together} times`).join('\n') || 'No co-purchase data available'}
 
 **Your Tasks:**
 
@@ -216,6 +242,7 @@ ${JSON.stringify(coPurchaseData?.slice(0, 10) || [], null, 2)}
 
 Return ONLY valid JSON, no markdown or explanations.`;
 
+        console.log(`[INVENTORY OPTIMIZE] Prompt built - Length: ${prompt.length} characters`);
         console.log(`[INVENTORY OPTIMIZE] Calling Groq API...`);
         // Call Groq API
         const groqResponse = await groq.post('/chat/completions', {
@@ -344,6 +371,9 @@ Return ONLY valid JSON, no markdown or explanations.`;
                 products_analyzed: productData?.length || 0,
                 sales_records: salesData?.length || 0,
                 available_capital: capitalData?.total_net_capital || 0,
+                products_sent_to_ai: productSummary.length,
+                sales_sent_to_ai: salesSummary.length,
+                lead_times_sent_to_ai: leadTimeSummary.length,
                 timestamp: new Date().toISOString()
             }
         });
