@@ -33,15 +33,15 @@ const Dashboard = () => {
         <img
           src="/dashboard-hero.jpg"
           alt="Business Dashboard"
-          className="w-full h-full object-cover opacity-50"
+          className="w-full h-full object-cover"
         />
-  {/* Overlay removed for full transparency */}
+        <div className="absolute inset-0 bg-black/40"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-black mb-2">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
               Welcome Back! 👋
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-white/80">
               Your business is growing - here&apos;s today&apos;s snapshot
             </p>
           </div>
