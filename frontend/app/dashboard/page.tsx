@@ -128,7 +128,7 @@ const Dashboard = () => {
               gradient="from-primary/80 to-accent/80"
             />
             <FeatureCard
-              title="AI Assistant"
+              title="Bizmind"
               description="Natural language queries for business insights"
               icon="ai"
               href="/bizmind"
