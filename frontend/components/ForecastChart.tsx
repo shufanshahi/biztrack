@@ -3,17 +3,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
 
-const data = [
-  { month: "Jan", actual: 45000, forecast: 42000, confidence: "92%" },
-  { month: "Feb", actual: 52000, forecast: 50000, confidence: "89%" },
-  { month: "Mar", actual: 48000, forecast: 49000, confidence: "91%" },
-  { month: "Apr", actual: 61000, forecast: 58000, confidence: "88%" },
-  { month: "May", actual: 55000, forecast: 63000, confidence: "85%" },
-  { month: "Jun", actual: null, forecast: 67000, confidence: "83%" },
-  { month: "Jul", actual: null, forecast: 72000, confidence: "80%" },
-];
+type Point = { month: string; actual?: number | null; forecast: number; confidence?: string | number };
 
-export const ForecastChart = () => {
+export const ForecastChart = ({ data = [] as Point[] }: { data?: Point[] }) => {
+  const last = data.length ? data[data.length - 1] : undefined;
+  const nextUnits = last?.forecast ?? 0;
+  const conf = last?.confidence;
+  const confText = typeof conf === 'number' ? `${Math.round(conf * 100)}%` : (conf || '');
   return (
     <Card>
       <CardHeader>
@@ -25,15 +21,15 @@ export const ForecastChart = () => {
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data}>
-            <XAxis 
-              dataKey="month" 
+            <XAxis
+              dataKey="month"
               stroke="hsl(var(--muted-foreground))"
               fontSize={12}
             />
-            <YAxis 
+            <YAxis
               stroke="hsl(var(--muted-foreground))"
               fontSize={12}
-              tickFormatter={(value) => `৳${(value / 1000).toFixed(0)}k`}
+              tickFormatter={(value) => `${Math.round(value as number)}`}
             />
             <Tooltip
               contentStyle={{
@@ -41,7 +37,7 @@ export const ForecastChart = () => {
                 border: "1px solid hsl(var(--border))",
                 borderRadius: "var(--radius)",
               }}
-              formatter={(value: number) => [`৳${value.toLocaleString()}`, ""]}
+              formatter={(value: number) => [value.toLocaleString(), ""]}
             />
             <Legend />
             <Line
@@ -65,10 +61,10 @@ export const ForecastChart = () => {
         </ResponsiveContainer>
         <div className="mt-4 p-4 bg-accent/10 rounded-lg border border-accent/20">
           <p className="text-sm font-medium text-accent-foreground">
-            📊 Next Month Prediction: ৳67,000 (83% confidence)
+            📊 Next Period Prediction: {nextUnits.toLocaleString()} units{confText ? ` (${confText} confidence)` : ''}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Factors: Upcoming Eid festival (+15%), favorable weather (+5%), market trends (+3%)
+            Factors: Model considers trends and seasonality; external signals can be added later
           </p>
         </div>
       </CardContent>

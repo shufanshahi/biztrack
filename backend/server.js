@@ -7,16 +7,16 @@ require('dotenv').config();
 const { connectDB } = require('./config/mongodb');
 const authRoutes = require('./routes/auth');
 const uploadsRoutes = require('./routes/uploads');
-const langchainModule = require('./routes/langchain');
-const ragModule = require('./routes/rag');
-const langchainRoutes = langchainModule.router;
-const ragRoutes = ragModule.router;
+const { router: langchainRoutes } = require('./routes/langchain');
+const { router: ragRoutes } = require('./routes/rag');
 const businessRoutes = require('./routes/business');
 const dataRoutes = require('./routes/data');
 const inventoryRoutes = require('./routes/inventory');
 const mappingRoutes = require('./routes/mapping');
 const testRoutes = require('./routes/test');
 const customerInsightsRoutes = require('./routes/customer_insights');
+const forecastRoutes = require('./routes/forecast');
+const analyticsRoutes = require('./routes/analytics');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,7 +27,7 @@ connectDB();
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // limit each IP to 1000 requests per windowMs for development
+    max: 100, // limit each IP to 100 requests per windowMs
     message: 'Too many requests from this IP, please try again later.'
 });
 
@@ -45,13 +45,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/uploads', uploadsRoutes);
 app.use('/api/langchain', langchainRoutes);
-// app.use('/api/rag', ragRoutes);
+app.use('/api/rag', ragRoutes);
 app.use('/api/businesses', businessRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/mapping', mappingRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/customer-insights', customerInsightsRoutes);
+app.use('/api/forecast', forecastRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
