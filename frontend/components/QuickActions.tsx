@@ -3,37 +3,39 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, DollarSign, Package, TrendingDown } from "lucide-react";
-import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export const QuickActions = () => {
+  const router = useRouter();
+
   const actions = [
     {
       icon: DollarSign,
       label: "Record Sale",
       description: "Quick sale entry",
-      variant: "default" as const,
-      action: () => toast.success("Sale recording opened")
+      variant: "default",
+      action: () => router.push('/sales')
     },
     {
       icon: TrendingDown,
       label: "Add Expense",
       description: "Track spending",
-      variant: "secondary" as const,
-      action: () => toast.success("Expense form opened")
+      variant: "secondary",
+      action: () => router.push('/expenses') // Placeholder for future expense page
     },
     {
       icon: Package,
       label: "Update Inventory",
       description: "Stock management",
-      variant: "secondary" as const,
-      action: () => toast.success("Inventory update opened")
+      variant: "secondary",
+      action: () => router.push('/inventory') // Placeholder for future inventory page
     },
     {
       icon: Plus,
       label: "New Customer",
       description: "Add customer",
-      variant: "secondary" as const,
-      action: () => toast.success("Customer form opened")
+      variant: "secondary",
+      action: () => router.push('/customers/new') // Placeholder for future customer page
     }
   ];
 
@@ -47,7 +49,7 @@ export const QuickActions = () => {
         {actions.map((action, index) => (
           <Button
             key={index}
-            variant={action.variant}
+            variant={index === 0 ? "default" : "secondary"}
             className="h-auto flex-col items-start p-4 space-y-2"
             onClick={action.action}
           >
