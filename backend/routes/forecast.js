@@ -4,6 +4,44 @@ const { authenticateUser } = require('../middleware/auth');
 const { supabaseAdmin } = require('../config/supabase');
 const axios = require('axios');
 
+// Simple in-memory cache to reduce API calls for free tier services
+const cache = new Map();
+
+function getCachedData(key) {
+    const cached = cache.get(key);
+    if (!cached) return null;
+
+    // Check if cache is still valid
+    if (Date.now() > cached.expiresAt) {
+        cache.delete(key);
+        return null;
+    }
+
+    console.log(`[CACHE HIT] ${key}`);
+    return cached.data;
+}
+
+function setCachedData(key, data, ttlMinutes = 60) {
+    const expiresAt = Date.now() + (ttlMinutes * 60 * 1000);
+    cache.set(key, { data, expiresAt });
+    console.log(`[CACHE SET] ${key} (TTL: ${ttlMinutes}m)`);
+}
+
+// Clean up expired cache entries every hour
+setInterval(() => {
+    const now = Date.now();
+    let cleaned = 0;
+    for (const [key, value] of cache.entries()) {
+        if (now > value.expiresAt) {
+            cache.delete(key);
+            cleaned++;
+        }
+    }
+    if (cleaned > 0) {
+        console.log(`[CACHE CLEANUP] Removed ${cleaned} expired entries. Current cache size: ${cache.size}`);
+    }
+}, 60 * 60 * 1000); // Run every hour
+
 // Helpers
 function monthKey(dateStr) {
     const d = new Date(dateStr);
@@ -128,47 +166,57 @@ router.get('/context/:businessId', authenticateUser, async (req, res) => {
         // Fetch for current and next year, then merge and show upcoming holidays
         const year = now.getFullYear();
         const holidayApiKey = process.env.HOLIDAY_API_KEY;
-        const urls = holidayApiKey ? [
-            `https://calendarific.com/api/v2/holidays?api_key=${holidayApiKey}&country=BD&year=${year}`,
-            `https://calendarific.com/api/v2/holidays?api_key=${holidayApiKey}&country=BD&year=${year + 1}`
-        ] : [];
 
-        let holidayData = [];
-        if (urls.length > 0) {
-            try {
-                const responses = await Promise.all(urls.map(url => axios.get(url)));
-                const extract = (resp) => {
-                    // Calendarific API returns holidays in response.holidays
-                    const h = resp?.data?.response?.holidays;
-                    if (Array.isArray(h)) {
-                        return h.map(holiday => ({
-                            date: holiday.date.iso,
-                            name: holiday.name,
-                            type: holiday.primary_type || 'Holiday',
-                            public: holiday.type?.includes('National holiday') || false
-                        }));
-                    }
-                    return [];
-                };
-                holidayData = responses.flatMap(extract);
-            } catch (e) {
-                const status = e?.response?.status;
-                console.warn('[FORECAST CONTEXT] Calendarific API error:', status, e?.message || e);
+        // Check cache first (cache holidays for 24 hours)
+        const holidayCacheKey = `holidays_BD_${year}_${year + 1}`;
+        let holidayData = getCachedData(holidayCacheKey);
 
-                // Fallback to static Bangladesh holidays if API fails
-                console.log('[FORECAST CONTEXT] Using fallback Bangladesh holidays');
+        if (!holidayData) {
+            // Cache miss - fetch from API
+            const urls = holidayApiKey ? [
+                `https://calendarific.com/api/v2/holidays?api_key=${holidayApiKey}&country=BD&year=${year}`,
+                `https://calendarific.com/api/v2/holidays?api_key=${holidayApiKey}&country=BD&year=${year + 1}`
+            ] : [];
+
+            if (urls.length > 0) {
+                try {
+                    const responses = await Promise.all(urls.map(url => axios.get(url)));
+                    const extract = (resp) => {
+                        // Calendarific API returns holidays in response.holidays
+                        const h = resp?.data?.response?.holidays;
+                        if (Array.isArray(h)) {
+                            return h.map(holiday => ({
+                                date: holiday.date.iso,
+                                name: holiday.name,
+                                type: holiday.primary_type || 'Holiday',
+                                public: holiday.type?.includes('National holiday') || false
+                            }));
+                        }
+                        return [];
+                    };
+                    holidayData = responses.flatMap(extract);
+
+                    // Cache for 24 hours (holidays don't change frequently)
+                    setCachedData(holidayCacheKey, holidayData, 1440);
+                } catch (e) {
+                    const status = e?.response?.status;
+                    console.warn('[FORECAST CONTEXT] Calendarific API error:', status, e?.message || e);
+
+                    // Fallback to static Bangladesh holidays if API fails
+                    console.log('[FORECAST CONTEXT] Using fallback Bangladesh holidays');
+                    holidayData = [
+                        ...getBangladeshHolidaysFallback(year),
+                        ...getBangladeshHolidaysFallback(year + 1)
+                    ];
+                }
+            } else {
+                // No API key, use fallback
+                console.log('[FORECAST CONTEXT] No Holiday API key, using fallback Bangladesh holidays');
                 holidayData = [
                     ...getBangladeshHolidaysFallback(year),
                     ...getBangladeshHolidaysFallback(year + 1)
                 ];
             }
-        } else {
-            // No API key, use fallback
-            console.log('[FORECAST CONTEXT] No Holiday API key, using fallback Bangladesh holidays');
-            holidayData = [
-                ...getBangladeshHolidaysFallback(year),
-                ...getBangladeshHolidaysFallback(year + 1)
-            ];
         }
 
         // Get all upcoming holidays (for display - up to 10)
@@ -193,10 +241,13 @@ router.get('/context/:businessId', authenticateUser, async (req, res) => {
             .sort((a, b) => (a.date < b.date ? -1 : 1));
 
         // Weather: Meteosource API using place_id
-        // Accept multiple env var names to avoid casing mismatches
+        // Cache weather for shorter duration (3 hours) as it changes more frequently
         const meteosourceKey = process.env.WEATHER_API_KEY;
-        let weather = [];
-        if (meteosourceKey) {
+        const weatherCacheKey = `weather_${placeId}_${todayStart.toISOString().split('T')[0]}`;
+        let weather = getCachedData(weatherCacheKey);
+
+        if (!weather && meteosourceKey) {
+            // Cache miss - fetch from API
             try {
                 const msUrl = `https://www.meteosource.com/api/v1/free/point?place_id=${encodeURIComponent(placeId)}&sections=daily&timezone=UTC&language=en&units=metric&key=${encodeURIComponent(meteosourceKey)}`;
                 const w = await axios.get(msUrl, { headers: { 'Accept-Encoding': 'gzip' } });
@@ -214,12 +265,20 @@ router.get('/context/:businessId', authenticateUser, async (req, res) => {
                     const todayStr = now.toISOString().slice(0, 10);
                     weather.push({ date: todayStr, weather: w.data.current.weather });
                 }
+
+                // Cache for 3 hours (weather updates throughout the day)
+                if (weather && weather.length > 0) {
+                    setCachedData(weatherCacheKey, weather, 180);
+                }
             } catch (e) {
                 const status = e?.response?.status;
                 console.warn('[FORECAST CONTEXT] Meteosource fetch error:', status ? `status=${status}` : '', e?.message || e);
+                weather = []; // Ensure weather is an array on error
             }
-        } else {
-            console.warn('[FORECAST CONTEXT] Meteosource key not set; tried env names: METEOSOURCE_API_KEY, WEATHER_API_KEY, Weather_API_Key, weather_api_key');
+        } else if (!weather) {
+            // No cache and no API key
+            console.warn('[FORECAST CONTEXT] Meteosource key not set and no cached data available');
+            weather = [];
         }
 
         // // As a last resort, keep a minimal Open-Meteo fallbhshh84ag59sryite4gultt3vqylo21gq1ad6faydack if Meteosource yields nothing
@@ -571,48 +630,56 @@ router.get('/holidays/:businessId', authenticateUser, async (req, res) => {
         const currentYear = now.getFullYear();
         const nextYear = currentYear + 1;
 
-        // Fetch holidays for current and next year to ensure we get upcoming ones
-        const urls = holidayApiKey ? [
-            `https://calendarific.com/api/v2/holidays?api_key=${encodeURIComponent(holidayApiKey)}&country=BD&year=${currentYear}`,
-            `https://calendarific.com/api/v2/holidays?api_key=${encodeURIComponent(holidayApiKey)}&country=BD&year=${nextYear}`
-        ] : [];
+        // Check cache first (same cache key as context endpoint for consistency)
+        const holidayCacheKey = `holidays_BD_${currentYear}_${nextYear}`;
+        let allHolidays = getCachedData(holidayCacheKey);
 
-        let allHolidays = [];
-        if (urls.length > 0) {
-            try {
-                const responses = await Promise.all(urls.map(url => axios.get(url)));
-                const extract = (resp) => {
-                    const h = resp?.data?.response?.holidays;
-                    if (Array.isArray(h)) {
-                        return h.map(x => ({
-                            date: x.date.iso,
-                            name: x.name,
-                            type: x.primary_type || 'Holiday',
-                            public: x.type?.includes('National holiday') || false,
-                            description: x.description || ''
-                        }));
-                    }
-                    return [];
-                };
-                allHolidays = responses.flatMap(extract);
-            } catch (e) {
-                const status = e?.response?.status;
-                console.warn('[FORECAST HOLIDAYS] Calendarific API error:', status, e?.message || e);
+        if (!allHolidays) {
+            // Cache miss - fetch holidays for current and next year
+            const urls = holidayApiKey ? [
+                `https://calendarific.com/api/v2/holidays?api_key=${encodeURIComponent(holidayApiKey)}&country=BD&year=${currentYear}`,
+                `https://calendarific.com/api/v2/holidays?api_key=${encodeURIComponent(holidayApiKey)}&country=BD&year=${nextYear}`
+            ] : [];
 
-                // Fallback to static Bangladesh holidays if API fails
-                console.log('[FORECAST HOLIDAYS] Using fallback Bangladesh holidays');
+            if (urls.length > 0) {
+                try {
+                    const responses = await Promise.all(urls.map(url => axios.get(url)));
+                    const extract = (resp) => {
+                        const h = resp?.data?.response?.holidays;
+                        if (Array.isArray(h)) {
+                            return h.map(x => ({
+                                date: x.date.iso,
+                                name: x.name,
+                                type: x.primary_type || 'Holiday',
+                                public: x.type?.includes('National holiday') || false,
+                                description: x.description || ''
+                            }));
+                        }
+                        return [];
+                    };
+                    allHolidays = responses.flatMap(extract);
+
+                    // Cache for 24 hours
+                    setCachedData(holidayCacheKey, allHolidays, 1440);
+                } catch (e) {
+                    const status = e?.response?.status;
+                    console.warn('[FORECAST HOLIDAYS] Calendarific API error:', status, e?.message || e);
+
+                    // Fallback to static Bangladesh holidays if API fails
+                    console.log('[FORECAST HOLIDAYS] Using fallback Bangladesh holidays');
+                    allHolidays = [
+                        ...getBangladeshHolidaysFallback(currentYear),
+                        ...getBangladeshHolidaysFallback(nextYear)
+                    ];
+                }
+            } else {
+                // No API key, use fallback
+                console.log(`[FORECAST HOLIDAYS] No API key, using fallback Bangladesh holidays`);
                 allHolidays = [
                     ...getBangladeshHolidaysFallback(currentYear),
                     ...getBangladeshHolidaysFallback(nextYear)
                 ];
             }
-        } else {
-            // No API key, use fallback
-            console.log(`[FORECAST HOLIDAYS] No API key, using fallback Bangladesh holidays`);
-            allHolidays = [
-                ...getBangladeshHolidaysFallback(currentYear),
-                ...getBangladeshHolidaysFallback(nextYear)
-            ];
         }
 
         // Filter to upcoming holidays only (from today onwards) and limit to 10
