@@ -1257,7 +1257,7 @@ CRITICAL: Return ONLY the JSON object above. Do not include explanatory text, ma
                 // Check if this is product table that needs hierarchy processing
                 if (tableMapping.table_name === 'product') {
                     this.log('info', 'Detected product table - checking for hierarchy requirements');
-                    const hierarchyResult = await this.processProductHierarchy(businessId, allDocs, tableMapping);
+                    const hierarchyResult = await this.processProductHierarchy(businessId, allDocs, tableMapping, collectionName);
                     results.push(hierarchyResult);
                     continue;
                 }
@@ -1384,9 +1384,10 @@ CRITICAL: Return ONLY the JSON object above. Do not include explanatory text, ma
      * Process product hierarchy: category → brand → individual products
      * Handles CSV data where each item with Stock quantity creates multiple product records
      */
-    async processProductHierarchy(businessId, documents, tableMapping) {
+    async processProductHierarchy(businessId, documents, tableMapping, collectionName) {
         this.log('info', '🏗️  Starting product hierarchy processing', {
-            totalItems: documents.length
+            totalItems: documents.length,
+            collectionName: collectionName
         });
 
         try {
@@ -1408,9 +1409,42 @@ CRITICAL: Return ONLY the JSON object above. Do not include explanatory text, ma
             }
             
             for (const doc of documents) {
-                // Extract category (Type field) - try multiple field name variations
-                const categoryName = doc['Type'] || doc['type'] || doc['Category'] || doc['category'] ||
+                // Extract category from multiple sources - prioritize explicit category, then derive from collection name
+                let categoryName = doc['Type'] || doc['type'] || doc['Category'] || doc['category'] ||
                                     doc['Product Type'] || doc['product_type'] || doc['Item Type'] || doc['item_type'];
+                
+                // If no explicit category, try to derive from collection name or sheet name
+                if (!categoryName) {
+                    // Extract category from collection name patterns like "businessid_Books", "businessid_Stethoscope"
+                    const collectionParts = collectionName.split('_');
+                    if (collectionParts.length > 1) {
+                        // Last part is usually the sheet/category name
+                        const potentialCategory = collectionParts[collectionParts.length - 1]
+                            .replace(/[-_]/g, ' ') // Replace hyphens/underscores with spaces
+                            .trim();
+                        
+                        // Common category mappings based on product type keywords
+                        if (potentialCategory.toLowerCase().includes('book')) {
+                            categoryName = 'Books';
+                        } else if (potentialCategory.toLowerCase().includes('stethoscope') || 
+                                   potentialCategory.toLowerCase().includes('bp machine') ||
+                                   potentialCategory.toLowerCase().includes('instrument')) {
+                            categoryName = 'Medical Equipment';
+                        } else if (potentialCategory.toLowerCase().includes('dress') || 
+                                   potentialCategory.toLowerCase().includes('ot dress')) {
+                            categoryName = 'Medical Apparel';
+                        } else if (potentialCategory.toLowerCase().includes('main')) {
+                            categoryName = 'General Merchandise';
+                        } else {
+                            categoryName = potentialCategory; // Use as-is
+                        }
+                    }
+                }
+                
+                // Default category if still not found
+                if (!categoryName) {
+                    categoryName = 'Uncategorized';
+                }
                 
                 if (categoryName && categoryName.trim() && !categories.has(categoryName)) {
                     categories.set(categoryName, {
@@ -1421,22 +1455,34 @@ CRITICAL: Return ONLY the JSON object above. Do not include explanatory text, ma
                     });
                 }
 
-                // Extract brand - use category name as brand name when brand not specified
-                const priceValue = doc['Price'] || doc['price'] || doc['Unit Price'] || doc['unit_price'];
+                // Extract brand - prioritize explicit Brand field, fall back to category
+                let brandName = doc['Brand'] || doc['brand'] || doc['Brand/Name'] || doc['brand_name'] ||
+                               doc['Name'] || doc['name']; // For sheets like "Instrument" that use "Name"
                 
-                // Use category name as brand name (e.g., "Electronics", "Clothing")
-                if (categoryName && !brands.has(categoryName)) {
-                    brands.set(categoryName, {
-                        brand_name: categoryName,
-                        description: `Brand: ${categoryName}`,
+                // If no explicit brand, use category as brand
+                if (!brandName || brandName.trim() === '') {
+                    brandName = categoryName;
+                }
+                
+                const priceValue = doc['Price'] || doc['price'] || doc['Unit Price'] || doc['unit_price'] ||
+                                  doc['Price per unit'] || doc['price_per_unit'] ||
+                                  doc['Cost per unit'] || doc['cost_per_unit'];
+                
+                // Store unique brands
+                if (brandName && !brands.has(brandName)) {
+                    brands.set(brandName, {
+                        brand_name: brandName,
+                        description: `Brand: ${brandName}`,
                         unit_price: priceValue ? this.parseMonetaryValue(String(priceValue)) : null,
                         business_id: businessId
                         // brand_id will be set from database (either existing or newly inserted)
                     });
                 }
 
-                // Count stock for total products
-                const stockValue = doc['Stock'] || doc['stock'] || doc['Quantity'] || doc['quantity'];
+                // Count stock for total products - try multiple field variations
+                const stockValue = doc['Stock'] || doc['stock'] || doc['Quantity'] || doc['quantity'] ||
+                                  doc['Units'] || doc['units'] || doc['In stock'] || doc['in_stock'] ||
+                                  doc['Inventory'] || doc['inventory'];
                 const stock = parseInt(stockValue) || 1;
                 totalUnitsToCreate += stock;
             }
@@ -1573,24 +1619,82 @@ CRITICAL: Return ONLY the JSON object above. Do not include explanatory text, ma
             
             let productUnitCounter = 0;
             for (const doc of documents) {
-                const itemName = doc['Item name'] || doc['Item Name'] || doc['item_name'] || 
-                                doc['Product'] || doc['product'] || doc['Product name'] || doc['product_name'];
-                const categoryName = doc['Type'] || doc['type'] || doc['Category'] || doc['category'] ||
+                // Extract item/product name - try multiple field variations
+                let itemName = doc['Item name'] || doc['Item Name'] || doc['item_name'] || 
+                              doc['Product'] || doc['product'] || doc['Product name'] || doc['product_name'] ||
+                              doc['Name'] || doc['name'] || doc['Brand/Name'] || doc['Brand'];
+                
+                // If still no name, construct from available fields (Product no. + Brand/Color/Size)
+                if (!itemName) {
+                    const productNo = doc['Product no.'] || doc['Product No.'] || doc['product_no'];
+                    const brand = doc['Brand'] || doc['brand'];
+                    const color = doc['Colour'] || doc['Color'] || doc['colour'];
+                    const size = doc['Size'] || doc['size'];
+                    
+                    if (brand) itemName = brand;
+                    if (color) itemName = itemName ? `${itemName} - ${color}` : color;
+                    if (size) itemName = itemName ? `${itemName} - ${size}` : size;
+                    if (!itemName && productNo) itemName = `Product ${productNo}`;
+                }
+                
+                // Re-extract category (same as Step 1 logic)
+                let categoryName = doc['Type'] || doc['type'] || doc['Category'] || doc['category'] ||
                                     doc['Product Type'] || doc['product_type'] || doc['Item Type'] || doc['item_type'];
-                const stockValue = doc['Stock'] || doc['stock'] || doc['Quantity'] || doc['quantity'];
+                
+                if (!categoryName) {
+                    const collectionParts = collectionName.split('_');
+                    if (collectionParts.length > 1) {
+                        const potentialCategory = collectionParts[collectionParts.length - 1].replace(/[-_]/g, ' ').trim();
+                        if (potentialCategory.toLowerCase().includes('book')) categoryName = 'Books';
+                        else if (potentialCategory.toLowerCase().includes('stethoscope') || 
+                                 potentialCategory.toLowerCase().includes('bp machine') ||
+                                 potentialCategory.toLowerCase().includes('instrument')) categoryName = 'Medical Equipment';
+                        else if (potentialCategory.toLowerCase().includes('dress')) categoryName = 'Medical Apparel';
+                        else if (potentialCategory.toLowerCase().includes('main')) categoryName = 'General Merchandise';
+                        else categoryName = potentialCategory;
+                    }
+                }
+                if (!categoryName) categoryName = 'Uncategorized';
+                
+                // Extract stock/units - try multiple variations
+                const stockValue = doc['Stock'] || doc['stock'] || doc['Quantity'] || doc['quantity'] ||
+                                  doc['Units'] || doc['units'] || doc['In stock'] || doc['in_stock'] ||
+                                  doc['Inventory'] || doc['inventory'];
                 const stock = parseInt(stockValue) || 1;
-                const itemId = doc['Item ID'] || doc['Item Id'] || doc['item_id'] || doc['id'];
-                const price = doc['Price'] || doc['price'] || doc['Unit Price'] || doc['unit_price'];
+                
+                // Extract product ID
+                const itemId = doc['Item ID'] || doc['Item Id'] || doc['item_id'] || doc['id'] ||
+                              doc['Product no.'] || doc['Product No.'] || doc['product_no'];
+                
+                // Extract pricing - try multiple variations
+                const price = doc['Price'] || doc['price'] || doc['Unit Price'] || doc['unit_price'] ||
+                             doc['Price per unit'] || doc['price_per_unit'] ||
+                             doc['Selling Price'] || doc['selling_price'];
+                
+                const cost = doc['Cost'] || doc['cost'] || doc['Cost per unit'] || doc['cost_per_unit'];
+                
+                // Status
                 const status = doc['Status'] || doc['status'] || 'Active';
-                const notes = doc['Notes'] || doc['notes'] || doc['Description'] || '';
+                
+                // Notes/Description
+                const notes = doc['Notes'] || doc['notes'] || doc['Description'] || doc['description'] || '';
 
                 if (!itemName) {
                     this.log('warning', 'Skipping document without item name', { doc });
                     continue;
                 }
 
+                // Extract brand for this product
+                let productBrandName = doc['Brand'] || doc['brand'] || doc['Brand/Name'] || doc['brand_name'] ||
+                                       doc['Name'] || doc['name'];
+                
+                // If no explicit brand, use category as brand
+                if (!productBrandName || productBrandName.trim() === '') {
+                    productBrandName = categoryName;
+                }
+
                 // Get the actual IDs from the Maps (which now have the correct IDs after checking existing records)
-                const brand = categoryName ? brands.get(categoryName) : null;
+                const brand = productBrandName ? brands.get(productBrandName) : null;
                 const category = categoryName ? categories.get(categoryName) : null;
                 
                 const brandId = brand ? brand.brand_id : null;
@@ -1622,13 +1726,13 @@ CRITICAL: Return ONLY the JSON object above. Do not include explanatory text, ma
                     
                     const product = {
                         business_id: businessId,
-                        product_id: this.generateIdFromValue(`${itemId}_${itemName}_unit_${unitNum}`),
+                        product_id: this.generateIdFromValue(`${itemId}_${itemName}_${productBrandName}_unit_${unitNum}`),
                         product_name: `${itemName}`, // Use item name as product name
                         description: notes || `${itemName} - Unit ${unitNum}`,
                         brand_id: brandId,
                         category_id: categoryId,
-                        price: price ? this.parseMonetaryValue(String(price)) : null,
-                        selling_price: price ? this.parseMonetaryValue(String(price)) : null,
+                        price: cost ? this.parseMonetaryValue(String(cost)) : null, // Cost = purchase/production cost
+                        selling_price: price ? this.parseMonetaryValue(String(price)) : null, // Price = selling price
                         status: status,
                         created_date: new Date().toISOString(),
                         stored_location: null,
