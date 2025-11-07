@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { InventoryAlerts } from "@/components/InventoryAlerts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Package, AlertTriangle, TrendingDown, PackageCheck, RefreshCw, Loader2, Store } from "lucide-react";
+import { ArrowLeft, Package, AlertTriangle, TrendingDown, PackageCheck, RefreshCw, Loader2, Store, Sparkles } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
@@ -204,29 +204,33 @@ const InventoryOptimizeContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50/30">
+      <header className="bg-gradient-to-r from-white via-white to-slate-50 border-b-2 border-slate-200/50 shadow-sm sticky top-0 z-10 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.push("/inventory")}>
-                <ArrowLeft className="h-5 w-5" />
+              <Button variant="ghost" onClick={() => router.push("/inventory")} className="hover:bg-slate-100">
+                <ArrowLeft className="h-5 w-5 mr-2" />
               </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">AI Inventory Optimization</h1>
-                <p className="text-sm text-muted-foreground">Smart stock optimization powered by AI</p>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-pink-700 bg-clip-text text-transparent">AI Inventory Optimization</h1>
+                  <p className="text-sm text-slate-600 font-medium">Intelligent stock recommendations</p>
+                </div>
               </div>
             </div>
 
             {/* Business Selector */}
             <div className="flex items-center gap-2">
-              <Store className="h-5 w-5 text-muted-foreground" />
+              <Store className="h-5 w-5 text-slate-600" />
               <select
                 value={selectedBusiness}
                 onChange={(e) => setSelectedBusiness(e.target.value)}
-                className="px-4 py-2 rounded-md border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-w-[200px]"
+                className="px-4 py-2 rounded-lg border-2 border-slate-200 bg-white text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-w-[200px] shadow-sm"
               >
-                <option value="">Select Business</option>
                 {businesses.map((business) => (
                   <option key={business.id} value={business.id}>
                     {business.name}
@@ -236,21 +240,19 @@ const InventoryOptimizeContent = () => {
             </div>
           </div>
         </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8 space-y-6">
+      </header>      <main className="container mx-auto px-4 py-8 space-y-6">
         {error && (
-          <Card className="border-destructive/50 bg-destructive/10">
+          <Card className="border-2 border-red-200/50 bg-gradient-to-br from-red-50 to-rose-50 shadow-lg rounded-xl overflow-hidden">
             <CardContent className="pt-6">
-              <p className="text-destructive">{error}</p>
+              <p className="text-red-700 font-medium">{error}</p>
             </CardContent>
           </Card>
         )}
 
         {!selectedBusiness && (
-          <Card>
+          <Card className="border-2 border-slate-200/50 shadow-lg rounded-xl overflow-hidden">
             <CardContent className="pt-6">
-              <p className="text-center text-muted-foreground">
+              <p className="text-center text-slate-600">
                 Please select a business to run AI optimization
               </p>
             </CardContent>
@@ -260,79 +262,91 @@ const InventoryOptimizeContent = () => {
         {selectedBusiness && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
+              <Card className="border-2 border-slate-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Items</CardTitle>
+                  <CardTitle className="text-sm font-medium text-slate-600">Total Items</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-2">
-                    <Package className="h-5 w-5 text-primary" />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-600 shadow-md">
+                      <Package className="h-5 w-5 text-white" />
+                    </div>
                     {loadingStats ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
                     ) : (
-                      <div className="text-2xl font-bold text-foreground">{stats?.total_items || 0}</div>
+                      <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">{stats?.total_items || 0}</div>
                     )}
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="border-warning/20 bg-warning/5">
+              <Card className="border-2 border-amber-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Need Reorder</CardTitle>
+                  <CardTitle className="text-sm font-medium text-slate-600">Need Reorder</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-warning" />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-amber-600 to-orange-600 shadow-md">
+                      <AlertTriangle className="h-5 w-5 text-white" />
+                    </div>
                     {loadingStats ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin text-amber-600" />
                     ) : (
-                      <div className="text-2xl font-bold text-foreground">{stats?.need_reorder || 0}</div>
+                      <div className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">{stats?.need_reorder || 0}</div>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-destructive/20 bg-destructive/5">
+              <Card className="border-2 border-red-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Dead Stock</CardTitle>
+                  <CardTitle className="text-sm font-medium text-slate-600">Dead Stock</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-2">
-                    <TrendingDown className="h-5 w-5 text-destructive" />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-red-600 to-rose-600 shadow-md">
+                      <TrendingDown className="h-5 w-5 text-white" />
+                    </div>
                     {loadingStats ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin text-red-600" />
                     ) : (
-                      <div className="text-2xl font-bold text-foreground">{stats?.dead_stock || 0}</div>
+                      <div className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">{stats?.dead_stock || 0}</div>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-success/20 bg-success/5">
+              <Card className="border-2 border-emerald-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Optimal Stock</CardTitle>
+                  <CardTitle className="text-sm font-medium text-slate-600">Optimal Stock</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-2">
-                    <PackageCheck className="h-5 w-5 text-success" />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-600 shadow-md">
+                      <PackageCheck className="h-5 w-5 text-white" />
+                    </div>
                     {loadingStats ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin text-emerald-600" />
                     ) : (
-                      <div className="text-2xl font-bold text-foreground">{stats?.optimal_stock || 0}</div>
+                      <div className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{stats?.optimal_stock || 0}</div>
                     )}
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            <Card>
+            <Card className="border-2 border-slate-200/50 shadow-xl rounded-xl overflow-hidden">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>AI-Powered Analysis</CardTitle>
-                    <CardDescription>Run comprehensive inventory optimization analysis</CardDescription>
+                    <CardTitle className="text-xl font-bold text-slate-800">AI-Powered Analysis</CardTitle>
+                    <CardDescription className="text-slate-600 mt-1">Run comprehensive inventory optimization analysis</CardDescription>
                   </div>
-                  <Button onClick={runOptimization} disabled={optimizing}>
+                  <Button 
+                    onClick={runOptimization} 
+                    disabled={optimizing}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
                     {optimizing ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -352,26 +366,26 @@ const InventoryOptimizeContent = () => {
                   <div className="space-y-6">
                     {/* Summary */}
                     {optimization.summary && (
-                      <div className="p-4 rounded-lg border border-border bg-card/50">
-                        <h3 className="font-semibold mb-2">Optimization Summary</h3>
+                      <div className="p-6 rounded-xl border-2 border-purple-200/50 bg-gradient-to-br from-purple-50 to-pink-50 shadow-lg">
+                        <h3 className="font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">Optimization Summary</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Capital Required</p>
-                            <p className="text-lg font-bold">${optimization.summary.total_capital_required?.toFixed(2) || 0}</p>
+                          <div className="p-4 rounded-lg bg-white/80 border border-purple-100 shadow-sm">
+                            <p className="text-sm text-slate-600 mb-1">Capital Required</p>
+                            <p className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">${optimization.summary.total_capital_required?.toFixed(2) || 0}</p>
                           </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">Expected ROI</p>
-                            <p className="text-lg font-bold">{optimization.summary.expected_roi?.toFixed(1) || 0}%</p>
+                          <div className="p-4 rounded-lg bg-white/80 border border-purple-100 shadow-sm">
+                            <p className="text-sm text-slate-600 mb-1">Expected ROI</p>
+                            <p className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{optimization.summary.expected_roi?.toFixed(1) || 0}%</p>
                           </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">Risk Level</p>
-                            <p className="text-lg font-bold capitalize">{optimization.summary.risk_level || 'N/A'}</p>
+                          <div className="p-4 rounded-lg bg-white/80 border border-purple-100 shadow-sm">
+                            <p className="text-sm text-slate-600 mb-1">Risk Level</p>
+                            <p className="text-xl font-bold text-slate-800 capitalize">{optimization.summary.risk_level || 'N/A'}</p>
                           </div>
                         </div>
                         {optimization.summary.key_insights && optimization.summary.key_insights.length > 0 && (
-                          <div>
-                            <p className="text-sm font-semibold mb-2">Key Insights:</p>
-                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                          <div className="p-4 rounded-lg bg-white/80 border border-purple-100 shadow-sm">
+                            <p className="text-sm font-semibold text-slate-800 mb-3">Key Insights:</p>
+                            <ul className="list-disc list-inside space-y-2 text-sm text-slate-700">
                               {optimization.summary.key_insights.map((insight, idx) => (
                                 <li key={idx}>{insight}</li>
                               ))}
@@ -384,18 +398,18 @@ const InventoryOptimizeContent = () => {
                     {/* Forecast */}
                     {optimization.forecast && optimization.forecast.length > 0 && (
                       <div>
-                        <h3 className="font-semibold mb-3">Demand Forecast</h3>
+                        <h3 className="font-bold text-lg bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-4">Demand Forecast</h3>
                         <div className="space-y-3">
                           {optimization.forecast.slice(0, 10).map((item, idx) => (
-                            <div key={idx} className="flex items-start gap-4 p-4 rounded-lg border border-border bg-card">
-                              <div className="p-2 rounded-lg bg-blue-100">
-                                <Package className="h-5 w-5 text-blue-600" />
+                            <div key={idx} className="flex items-start gap-4 p-4 rounded-xl border-2 border-slate-200/50 bg-white shadow-md hover:shadow-lg transition-all duration-300">
+                              <div className="p-2.5 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-600 shadow-md">
+                                <Package className="h-5 w-5 text-white" />
                               </div>
                               <div className="flex-1">
-                                <p className="font-semibold text-foreground">{item.product_name}</p>
-                                <div className="flex items-center gap-4 text-sm mt-2">
-                                  <span>Forecast: {item.demand_forecast_units} units</span>
-                                  <span>Confidence: {item.confidence_score?.toFixed(1)}%</span>
+                                <p className="font-semibold text-slate-800">{item.product_name}</p>
+                                <div className="flex items-center gap-4 text-sm mt-2 text-slate-600">
+                                  <span className="font-medium">Forecast: <span className="text-blue-600">{item.demand_forecast_units} units</span></span>
+                                  <span className="font-medium">Confidence: <span className="text-cyan-600">{item.confidence_score?.toFixed(1)}%</span></span>
                                 </div>
                               </div>
                             </div>
@@ -407,24 +421,24 @@ const InventoryOptimizeContent = () => {
                     {/* Reorder Plan */}
                     {optimization.reorder_plan && optimization.reorder_plan.length > 0 && (
                       <div>
-                        <h3 className="font-semibold mb-3">Reorder Recommendations</h3>
+                        <h3 className="font-bold text-lg bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-4">Reorder Recommendations</h3>
                         <div className="space-y-3">
                           {optimization.reorder_plan.slice(0, 10).map((item, idx) => (
-                            <div key={idx} className="flex items-start gap-4 p-4 rounded-lg border border-warning/20 bg-warning/5">
-                              <div className="p-2 rounded-lg bg-warning/10">
-                                <AlertTriangle className="h-5 w-5 text-warning" />
+                            <div key={idx} className="flex items-start gap-4 p-4 rounded-xl border-2 border-amber-200/50 bg-gradient-to-br from-amber-50 to-orange-50 shadow-md hover:shadow-lg transition-all duration-300">
+                              <div className="p-2.5 rounded-lg bg-gradient-to-br from-amber-600 to-orange-600 shadow-md">
+                                <AlertTriangle className="h-5 w-5 text-white" />
                               </div>
                               <div className="flex-1">
-                                <p className="font-semibold text-foreground">{item.product_name}</p>
-                                <p className="text-sm text-muted-foreground mb-2">{item.rationale}</p>
-                                <div className="flex items-center gap-4 text-sm">
-                                  <span>Reorder Point: {item.reorder_point} units</span>
-                                  <span>Quantity: {item.reorder_quantity} units</span>
-                                  <span>Cost: ${item.estimated_cost?.toFixed(2)}</span>
-                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                    item.priority === 'high' ? 'bg-red-100 text-red-800' :
-                                    item.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-green-100 text-green-800'
+                                <p className="font-semibold text-slate-800">{item.product_name}</p>
+                                <p className="text-sm text-slate-600 mb-3 mt-1">{item.rationale}</p>
+                                <div className="flex items-center gap-4 text-sm flex-wrap">
+                                  <span className="text-slate-700 font-medium">Reorder Point: <span className="text-amber-700">{item.reorder_point} units</span></span>
+                                  <span className="text-slate-700 font-medium">Quantity: <span className="text-amber-700">{item.reorder_quantity} units</span></span>
+                                  <span className="text-slate-700 font-medium">Cost: <span className="text-amber-700">${item.estimated_cost?.toFixed(2)}</span></span>
+                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+                                    item.priority === 'high' ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white' :
+                                    item.priority === 'medium' ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white' :
+                                    'bg-gradient-to-r from-emerald-600 to-teal-600 text-white'
                                   }`}>
                                     {item.priority} priority
                                   </span>
@@ -439,22 +453,22 @@ const InventoryOptimizeContent = () => {
                     {/* Bundles */}
                     {optimization.bundles && optimization.bundles.length > 0 && (
                       <div>
-                        <h3 className="font-semibold mb-3">Recommended Bundles</h3>
+                        <h3 className="font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">Recommended Bundles</h3>
                         <div className="space-y-3">
                           {optimization.bundles.map((bundle, idx) => (
-                            <div key={idx} className="flex items-start gap-4 p-4 rounded-lg border border-border bg-card">
-                              <div className="p-2 rounded-lg bg-primary/10">
-                                <Package className="h-5 w-5 text-primary" />
+                            <div key={idx} className="flex items-start gap-4 p-4 rounded-xl border-2 border-slate-200/50 bg-white shadow-md hover:shadow-lg transition-all duration-300">
+                              <div className="p-2.5 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 shadow-md">
+                                <Package className="h-5 w-5 text-white" />
                               </div>
                               <div className="flex-1">
-                                <p className="font-semibold text-foreground">{bundle.bundle_name}</p>
-                                <p className="text-sm text-muted-foreground mb-2">{bundle.rationale}</p>
-                                <div className="flex items-center gap-4 text-sm">
-                                  <span>Price: ${bundle.bundle_price?.toFixed(2)}</span>
-                                  <span>Margin: {bundle.estimated_margin?.toFixed(1)}%</span>
-                                  <span>Co-purchase: {bundle.copurchase_frequency?.toFixed(0)}%</span>
+                                <p className="font-semibold text-slate-800">{bundle.bundle_name}</p>
+                                <p className="text-sm text-slate-600 mb-3 mt-1">{bundle.rationale}</p>
+                                <div className="flex items-center gap-4 text-sm flex-wrap mb-3">
+                                  <span className="text-slate-700 font-medium">Price: <span className="text-purple-600">${bundle.bundle_price?.toFixed(2)}</span></span>
+                                  <span className="text-slate-700 font-medium">Margin: <span className="text-pink-600">{bundle.estimated_margin?.toFixed(1)}%</span></span>
+                                  <span className="text-slate-700 font-medium">Co-purchase: <span className="text-purple-600">{bundle.copurchase_frequency?.toFixed(0)}%</span></span>
                                 </div>
-                                <Button size="sm" className="mt-2">Create Bundle</Button>
+                                <Button size="sm" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-md">Create Bundle</Button>
                               </div>
                             </div>
                           ))}
@@ -465,19 +479,19 @@ const InventoryOptimizeContent = () => {
                     {/* Dead Stock */}
                     {optimization.dead_stock && optimization.dead_stock.length > 0 && (
                       <div>
-                        <h3 className="font-semibold mb-3">Dead Stock Clearance</h3>
+                        <h3 className="font-bold text-lg bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-4">Dead Stock Clearance</h3>
                         <div className="space-y-3">
                           {optimization.dead_stock.map((item, idx) => (
-                            <div key={idx} className="flex items-start gap-4 p-4 rounded-lg border border-destructive/20 bg-destructive/5">
-                              <div className="p-2 rounded-lg bg-destructive/10">
-                                <TrendingDown className="h-5 w-5 text-destructive" />
+                            <div key={idx} className="flex items-start gap-4 p-4 rounded-xl border-2 border-red-200/50 bg-gradient-to-br from-red-50 to-rose-50 shadow-md hover:shadow-lg transition-all duration-300">
+                              <div className="p-2.5 rounded-lg bg-gradient-to-br from-red-600 to-rose-600 shadow-md">
+                                <TrendingDown className="h-5 w-5 text-white" />
                               </div>
                               <div className="flex-1">
-                                <p className="font-semibold text-foreground">{item.product_name}</p>
-                                <p className="text-sm text-muted-foreground mb-2">{item.action}</p>
+                                <p className="font-semibold text-slate-800">{item.product_name}</p>
+                                <p className="text-sm text-slate-600 mb-3 mt-1">{item.action}</p>
                                 <div className="flex items-center gap-4 text-sm">
-                                  <span>Discount: {item.clearance_discount}%</span>
-                                  <span>Est. Loss: ${item.estimated_loss?.toFixed(2)}</span>
+                                  <span className="text-slate-700 font-medium">Discount: <span className="text-red-600">{item.clearance_discount}%</span></span>
+                                  <span className="text-slate-700 font-medium">Est. Loss: <span className="text-rose-600">${item.estimated_loss?.toFixed(2)}</span></span>
                                 </div>
                               </div>
                             </div>
@@ -489,20 +503,20 @@ const InventoryOptimizeContent = () => {
                     {/* Seasonal Recommendations */}
                     {optimization.seasonal_recommendations && optimization.seasonal_recommendations.length > 0 && (
                       <div>
-                        <h3 className="font-semibold mb-3">Seasonal Adjustments</h3>
+                        <h3 className="font-bold text-lg bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-4">Seasonal Adjustments</h3>
                         <div className="space-y-3">
                           {optimization.seasonal_recommendations.map((rec, idx) => (
-                            <div key={idx} className="flex items-start gap-4 p-4 rounded-lg border border-border bg-card">
-                              <div className="p-2 rounded-lg bg-warning/10">
-                                <AlertTriangle className="h-5 w-5 text-warning" />
+                            <div key={idx} className="flex items-start gap-4 p-4 rounded-xl border-2 border-slate-200/50 bg-white shadow-md hover:shadow-lg transition-all duration-300">
+                              <div className="p-2.5 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-600 shadow-md">
+                                <AlertTriangle className="h-5 w-5 text-white" />
                               </div>
                               <div className="flex-1">
-                                <p className="font-semibold text-foreground capitalize">{rec.action} {rec.category}</p>
-                                <p className="text-sm text-muted-foreground mb-2">{rec.rationale}</p>
-                                <div className="text-sm">
-                                  <span>Change: {rec.percentage_change > 0 ? '+' : ''}{rec.percentage_change}%</span>
+                                <p className="font-semibold text-slate-800 capitalize">{rec.action} {rec.category}</p>
+                                <p className="text-sm text-slate-600 mb-3 mt-1">{rec.rationale}</p>
+                                <div className="flex items-center gap-3 mb-3">
+                                  <span className="text-slate-700 font-medium">Change: <span className="text-emerald-600 font-bold">{rec.percentage_change > 0 ? '+' : ''}{rec.percentage_change}%</span></span>
                                 </div>
-                                <Button size="sm" variant="outline" className="mt-2">View Plan</Button>
+                                <Button size="sm" variant="outline" className="border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all duration-300">View Plan</Button>
                               </div>
                             </div>
                           ))}

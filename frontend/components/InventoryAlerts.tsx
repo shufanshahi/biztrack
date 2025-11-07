@@ -144,10 +144,17 @@ export const InventoryAlerts = ({ businessId }: InventoryAlertsProps) => {
   };
 
   return (
-    <Card>
+    <Card className="border-2 border-slate-200/50 bg-gradient-to-br from-white via-white to-slate-50 shadow-xl rounded-xl overflow-hidden">
       <CardHeader>
-        <CardTitle>Inventory Intelligence</CardTitle>
-        <CardDescription>AI-powered stock optimization and recommendations</CardDescription>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg">
+            <Zap className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <CardTitle className="text-xl bg-gradient-to-r from-purple-700 to-pink-700 bg-clip-text text-transparent">Inventory Intelligence</CardTitle>
+            <CardDescription className="text-slate-600 font-medium">AI-powered stock optimization and recommendations</CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -157,7 +164,7 @@ export const InventoryAlerts = ({ businessId }: InventoryAlertsProps) => {
         ) : error ? (
           <div className="text-center py-8 text-destructive">{error}</div>
         ) : alerts.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8 text-slate-600 font-medium">
             No alerts available. Run optimization to generate insights.
           </div>
         ) : (
@@ -170,20 +177,28 @@ export const InventoryAlerts = ({ businessId }: InventoryAlertsProps) => {
                 return (
                   <div
                     key={`${alert.product_id}-${index}`}
-                    className="flex items-start space-x-4 p-4 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors"
+                    className="flex items-start space-x-4 p-5 rounded-xl border-2 border-slate-200/50 bg-gradient-to-br from-white to-slate-50 hover:shadow-md transition-all duration-300"
                   >
-                    <div className={`p-2 rounded-lg bg-${color}/10`}>
-                      <Icon className={`h-5 w-5 text-${color}`} />
+                    <div className={`p-3 rounded-lg shadow-md ${
+                      alert.priority === 'high' ? 'bg-gradient-to-br from-red-600 to-rose-600' :
+                      alert.priority === 'medium' ? 'bg-gradient-to-br from-amber-600 to-orange-600' :
+                      'bg-gradient-to-br from-emerald-600 to-teal-600'
+                    }`}>
+                      <Icon className="h-5 w-5 text-white" />
                     </div>
-                    <div className="flex-1 space-y-1">
+                    <div className="flex-1 space-y-2">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold">{alert.product_name}</p>
-                        <Badge variant={priorityColors[alert.priority]}>
+                        <p className="text-sm font-bold text-slate-900">{alert.product_name}</p>
+                        <Badge className={`${
+                          alert.priority === 'high' ? 'bg-gradient-to-r from-red-600 to-rose-600' :
+                          alert.priority === 'medium' ? 'bg-gradient-to-r from-amber-600 to-orange-600' :
+                          'bg-gradient-to-r from-emerald-600 to-teal-600'
+                        } text-white border-0 font-bold`}>
                           {alert.priority}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">{alert.message}</p>
-                      <p className="text-xs font-medium text-primary">{alert.action}</p>
+                      <p className="text-sm text-slate-700 leading-relaxed">{alert.message}</p>
+                      <p className="text-xs font-semibold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent">{alert.action}</p>
                     </div>
                   </div>
                 );

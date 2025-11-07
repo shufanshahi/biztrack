@@ -333,27 +333,32 @@ const InventoryPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+      <header className="bg-gradient-to-r from-white via-white to-slate-50 border-b-2 border-slate-200/50 shadow-sm sticky top-0 z-10 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")}>
+              <Button variant="ghost" onClick={() => router.push("/dashboard")} className="hover:bg-slate-100">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Inventory Management</h1>
-                <p className="text-sm text-muted-foreground">Smart stock optimization</p>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 shadow-lg">
+                  <Package className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent">Inventory Management</h1>
+                  <p className="text-sm text-slate-600 font-medium">Smart stock optimization</p>
+                </div>
               </div>
             </div>
             
             {/* Business Selector */}
             <div className="flex items-center gap-2">
-              <Store className="h-5 w-5 text-muted-foreground" />
+              <Store className="h-5 w-5 text-slate-600" />
               <select
                 value={selectedBusiness}
                 onChange={(e) => setSelectedBusiness(e.target.value)}
-                className="px-4 py-2 rounded-md border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-w-[200px]"
+                className="px-4 py-2 rounded-lg border-2 border-slate-200 bg-white text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-w-[200px] shadow-sm"
               >
                 {businesses.map((business) => (
                   <option key={business.id} value={business.id}>
@@ -364,8 +369,7 @@ const InventoryPage = () => {
               {selectedBusiness && (
                 <Button
                   onClick={() => router.push(`/inventory/optimize?business=${selectedBusiness}`)}
-                  variant="outline"
-                  className="ml-2"
+                  className="ml-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
                   AI Optimize
@@ -378,17 +382,17 @@ const InventoryPage = () => {
 
       <main className="container mx-auto px-4 py-8 space-y-6">
         {error && (
-          <Card className="border-destructive/50 bg-destructive/10">
+          <Card className="border-2 border-red-200/50 bg-gradient-to-br from-red-50 to-white shadow-lg rounded-xl overflow-hidden">
             <CardContent className="pt-6">
-              <p className="text-destructive">{error}</p>
+              <p className="text-red-700 font-semibold">{error}</p>
             </CardContent>
           </Card>
         )}
 
         {!selectedBusiness && (
-          <Card>
+          <Card className="border-2 border-slate-200/50 bg-gradient-to-br from-white to-slate-50 shadow-xl rounded-xl overflow-hidden">
             <CardContent className="pt-6">
-              <p className="text-center text-muted-foreground">
+              <p className="text-center text-slate-600 font-medium">
                 Please select a business to view inventory analytics
               </p>
             </CardContent>
@@ -398,65 +402,73 @@ const InventoryPage = () => {
         {selectedBusiness && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
+              <Card className="border-2 border-blue-200/50 bg-gradient-to-br from-blue-50 to-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Items</CardTitle>
+                  <CardTitle className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Total Items</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-2">
-                    <Package className="h-5 w-5 text-primary" />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-600 shadow-md">
+                      <Package className="h-5 w-5 text-white" />
+                    </div>
                     {loadingStats ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
                     ) : (
-                      <div className="text-2xl font-bold text-foreground">{stats?.total_items || 0}</div>
+                      <div className="text-3xl font-bold bg-gradient-to-br from-blue-700 to-cyan-700 bg-clip-text text-transparent">{stats?.total_items || 0}</div>
                     )}
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="border-warning/20 bg-warning/5">
+              <Card className="border-2 border-amber-200/50 bg-gradient-to-br from-amber-50 to-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Need Reorder</CardTitle>
+                  <CardTitle className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Need Reorder</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-warning" />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-amber-600 to-orange-600 shadow-md">
+                      <AlertTriangle className="h-5 w-5 text-white" />
+                    </div>
                     {loadingStats ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin text-amber-600" />
                     ) : (
-                      <div className="text-2xl font-bold text-foreground">{stats?.need_reorder || 0}</div>
+                      <div className="text-3xl font-bold bg-gradient-to-br from-amber-700 to-orange-700 bg-clip-text text-transparent">{stats?.need_reorder || 0}</div>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-destructive/20 bg-destructive/5">
+              <Card className="border-2 border-red-200/50 bg-gradient-to-br from-red-50 to-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Dead Stock</CardTitle>
+                  <CardTitle className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Dead Stock</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-2">
-                    <TrendingDown className="h-5 w-5 text-destructive" />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-red-600 to-rose-600 shadow-md">
+                      <TrendingDown className="h-5 w-5 text-white" />
+                    </div>
                     {loadingStats ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin text-red-600" />
                     ) : (
-                      <div className="text-2xl font-bold text-foreground">{stats?.dead_stock || 0}</div>
+                      <div className="text-3xl font-bold bg-gradient-to-br from-red-700 to-rose-700 bg-clip-text text-transparent">{stats?.dead_stock || 0}</div>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-success/20 bg-success/5">
+              <Card className="border-2 border-emerald-200/50 bg-gradient-to-br from-emerald-50 to-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Optimal Stock</CardTitle>
+                  <CardTitle className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Optimal Stock</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-2">
-                    <PackageCheck className="h-5 w-5 text-success" />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-600 shadow-md">
+                      <PackageCheck className="h-5 w-5 text-white" />
+                    </div>
                     {loadingStats ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin text-emerald-600" />
                     ) : (
-                      <div className="text-2xl font-bold text-foreground">{stats?.optimal_stock || 0}</div>
+                      <div className="text-3xl font-bold bg-gradient-to-br from-emerald-700 to-teal-700 bg-clip-text text-transparent">{stats?.optimal_stock || 0}</div>
                     )}
                   </div>
                 </CardContent>
@@ -464,23 +476,32 @@ const InventoryPage = () => {
             </div>
 
             {/* Products Table */}
-            <Card>
+            <Card className="border-2 border-slate-200/50 shadow-xl rounded-xl overflow-hidden">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Current Inventory</CardTitle>
-                    <CardDescription>View and manage your product inventory</CardDescription>
+                    <CardTitle className="text-xl font-bold text-slate-800">Current Inventory</CardTitle>
+                    <CardDescription className="text-slate-600 mt-1">View and manage your product inventory</CardDescription>
                   </div>
                   {selectedProducts.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-slate-700 bg-indigo-50 px-3 py-1.5 rounded-lg">
                         {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
                       </span>
                       <div className="flex gap-2">
-                        <Button onClick={handleMarkForSale} size="sm" variant="default">
+                        <Button 
+                          onClick={handleMarkForSale} 
+                          size="sm" 
+                          className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md"
+                        >
                           Mark for Sale
                         </Button>
-                        <Button onClick={handleMarkForPurchase} size="sm" variant="outline">
+                        <Button 
+                          onClick={handleMarkForPurchase} 
+                          size="sm" 
+                          variant="outline"
+                          className="border-2 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white transition-all duration-300"
+                        >
                           Mark for Purchase
                         </Button>
                       </div>
@@ -492,12 +513,12 @@ const InventoryPage = () => {
                 <div className="flex flex-col sm:flex-row gap-4 mt-4">
                   <div className="flex-1">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
                       <Input
                         placeholder="Search products by name..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 border-2 border-slate-200 focus:border-indigo-500"
                       />
                     </div>
                   </div>
@@ -670,12 +691,12 @@ const InventoryPage = () => {
                               <TableCell className="text-right">${product.price?.toFixed(2) || '0.00'}</TableCell>
                               <TableCell className="text-right">${product.selling_price?.toFixed(2) || '0.00'}</TableCell>
                               <TableCell>
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
                                   product.status === 'active' 
-                                    ? 'bg-green-100 text-green-800' 
+                                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white' 
                                     : product.status === 'inactive'
-                                    ? 'bg-red-100 text-red-800'
-                                    : 'bg-gray-100 text-gray-800'
+                                    ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white'
+                                    : 'bg-gradient-to-r from-slate-600 to-slate-700 text-white'
                                 }`}>
                                   {product.status || 'N/A'}
                                 </span>
@@ -739,10 +760,10 @@ const InventoryPage = () => {
 
       {/* Edit Product Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-background border shadow-xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-2 border-slate-200 shadow-2xl rounded-xl">
           <DialogHeader>
-            <DialogTitle>Edit Product</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Edit Product</DialogTitle>
+            <DialogDescription className="text-slate-600">
               Update product information and settings.
             </DialogDescription>
           </DialogHeader>
@@ -880,12 +901,14 @@ const InventoryPage = () => {
               variant="outline"
               onClick={() => setIsEditModalOpen(false)}
               disabled={savingProduct}
+              className="border-2 border-slate-300 text-slate-700 hover:bg-slate-100"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSaveProduct}
               disabled={savingProduct}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg"
             >
               {savingProduct ? (
                 <>
