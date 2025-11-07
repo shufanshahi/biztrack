@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import { MetricsCard } from "@/components/MetricsCard";
 import { QuickActions } from "@/components/QuickActions";
 import { FeatureCard } from "@/components/FeatureCard";
@@ -8,8 +9,47 @@ import { CashFlowPrediction } from "@/components/CashFlowPrediction";
 import { DollarSign, TrendingUp, Package, Users, Menu, Sparkles, Bell, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from '@/lib/auth-context';
+
+interface Business {
+    id: string;
+    name: string;
+    description: string | null;
+    created_at: string;
+    updated_at: string;
+}
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loadingBusinesses, setLoadingBusinesses] = useState(false);
+
+  const fetchBusinesses = async () => {
+    try {
+      setLoadingBusinesses(true);
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/businesses`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setBusinesses(data.businesses);
+      }
+    } catch (error) {
+      console.error('Error fetching businesses:', error);
+    } finally {
+      setLoadingBusinesses(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchBusinesses();
+    }
+  }, [user]);
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40">
       {/* Header */}
@@ -162,7 +202,7 @@ const Dashboard = () => {
               title="Data Upload"
               description="Import Excel/CSV files with AI-powered field mapping"
               icon="upload"
-              href="/businesses"
+              href={businesses.length > 0 ? `/businesses/${businesses[0].id}` : "/businesses"}
               gradient="from-blue-600 to-indigo-600"
             />
             <FeatureCard
