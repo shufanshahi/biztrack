@@ -204,7 +204,7 @@ const InventoryOptimizeContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
       <header className="bg-gradient-to-r from-white via-white to-slate-50 border-b-2 border-slate-200/50 shadow-sm sticky top-0 z-10 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -213,11 +213,11 @@ const InventoryOptimizeContent = () => {
                 <ArrowLeft className="h-5 w-5 mr-2" />
               </Button>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 shadow-lg">
                   <Sparkles className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-pink-700 bg-clip-text text-transparent">AI Inventory Optimization</h1>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent">AI Inventory Optimization</h1>
                   <p className="text-sm text-slate-600 font-medium">Intelligent stock recommendations</p>
                 </div>
               </div>
@@ -229,7 +229,7 @@ const InventoryOptimizeContent = () => {
               <select
                 value={selectedBusiness}
                 onChange={(e) => setSelectedBusiness(e.target.value)}
-                className="px-4 py-2 rounded-lg border-2 border-slate-200 bg-white text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-w-[200px] shadow-sm"
+                className="px-4 py-2 rounded-lg border-2 border-slate-200 bg-white text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-w-[200px] shadow-sm"
               >
                 {businesses.map((business) => (
                   <option key={business.id} value={business.id}>
@@ -345,7 +345,7 @@ const InventoryOptimizeContent = () => {
                   <Button 
                     onClick={runOptimization} 
                     disabled={optimizing}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     {optimizing ? (
                       <>
@@ -366,24 +366,24 @@ const InventoryOptimizeContent = () => {
                   <div className="space-y-6">
                     {/* Summary */}
                     {optimization.summary && (
-                      <div className="p-6 rounded-xl border-2 border-purple-200/50 bg-gradient-to-br from-purple-50 to-pink-50 shadow-lg">
-                        <h3 className="font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">Optimization Summary</h3>
+                      <div className="p-6 rounded-xl border-2 border-indigo-200/50 bg-gradient-to-br from-indigo-50 to-purple-50 shadow-lg">
+                        <h3 className="font-bold text-lg bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">Optimization Summary</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                          <div className="p-4 rounded-lg bg-white/80 border border-purple-100 shadow-sm">
+                          <div className="p-4 rounded-lg bg-white/80 border border-indigo-100 shadow-sm">
                             <p className="text-sm text-slate-600 mb-1">Capital Required</p>
-                            <p className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">${optimization.summary.total_capital_required?.toFixed(2) || 0}</p>
+                            <p className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">${optimization.summary.total_capital_required?.toFixed(2) || 0}</p>
                           </div>
-                          <div className="p-4 rounded-lg bg-white/80 border border-purple-100 shadow-sm">
+                          <div className="p-4 rounded-lg bg-white/80 border border-indigo-100 shadow-sm">
                             <p className="text-sm text-slate-600 mb-1">Expected ROI</p>
                             <p className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{optimization.summary.expected_roi?.toFixed(1) || 0}%</p>
                           </div>
-                          <div className="p-4 rounded-lg bg-white/80 border border-purple-100 shadow-sm">
+                          <div className="p-4 rounded-lg bg-white/80 border border-indigo-100 shadow-sm">
                             <p className="text-sm text-slate-600 mb-1">Risk Level</p>
                             <p className="text-xl font-bold text-slate-800 capitalize">{optimization.summary.risk_level || 'N/A'}</p>
                           </div>
                         </div>
                         {optimization.summary.key_insights && optimization.summary.key_insights.length > 0 && (
-                          <div className="p-4 rounded-lg bg-white/80 border border-purple-100 shadow-sm">
+                          <div className="p-4 rounded-lg bg-white/80 border border-indigo-100 shadow-sm">
                             <p className="text-sm font-semibold text-slate-800 mb-3">Key Insights:</p>
                             <ul className="list-disc list-inside space-y-2 text-sm text-slate-700">
                               {optimization.summary.key_insights.map((insight, idx) => (
@@ -453,22 +453,22 @@ const InventoryOptimizeContent = () => {
                     {/* Bundles */}
                     {optimization.bundles && optimization.bundles.length > 0 && (
                       <div>
-                        <h3 className="font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">Recommended Bundles</h3>
+                        <h3 className="font-bold text-lg bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">Recommended Bundles</h3>
                         <div className="space-y-3">
                           {optimization.bundles.map((bundle, idx) => (
                             <div key={idx} className="flex items-start gap-4 p-4 rounded-xl border-2 border-slate-200/50 bg-white shadow-md hover:shadow-lg transition-all duration-300">
-                              <div className="p-2.5 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 shadow-md">
+                              <div className="p-2.5 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 shadow-md">
                                 <Package className="h-5 w-5 text-white" />
                               </div>
                               <div className="flex-1">
                                 <p className="font-semibold text-slate-800">{bundle.bundle_name}</p>
                                 <p className="text-sm text-slate-600 mb-3 mt-1">{bundle.rationale}</p>
                                 <div className="flex items-center gap-4 text-sm flex-wrap mb-3">
-                                  <span className="text-slate-700 font-medium">Price: <span className="text-purple-600">${bundle.bundle_price?.toFixed(2)}</span></span>
-                                  <span className="text-slate-700 font-medium">Margin: <span className="text-pink-600">{bundle.estimated_margin?.toFixed(1)}%</span></span>
-                                  <span className="text-slate-700 font-medium">Co-purchase: <span className="text-purple-600">{bundle.copurchase_frequency?.toFixed(0)}%</span></span>
+                                  <span className="text-slate-700 font-medium">Price: <span className="text-indigo-600">${bundle.bundle_price?.toFixed(2)}</span></span>
+                                  <span className="text-slate-700 font-medium">Margin: <span className="text-purple-600">{bundle.estimated_margin?.toFixed(1)}%</span></span>
+                                  <span className="text-slate-700 font-medium">Co-purchase: <span className="text-indigo-600">{bundle.copurchase_frequency?.toFixed(0)}%</span></span>
                                 </div>
-                                <Button size="sm" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-md">Create Bundle</Button>
+                                <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md">Create Bundle</Button>
                               </div>
                             </div>
                           ))}

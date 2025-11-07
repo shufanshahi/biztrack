@@ -530,18 +530,18 @@ const InventoryPage = () => {
                         variant="outline"
                         role="combobox"
                         aria-expanded={categoryDropdownOpen}
-                        className="w-full sm:w-[200px] justify-between"
+                        className="w-full sm:w-[200px] justify-between border-2 border-slate-200 bg-white text-slate-900 hover:bg-slate-50"
                       >
                         {getSelectedCategoryName()}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-full sm:w-[200px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Search categories..." />
-                        <CommandList>
-                          <CommandEmpty>No categories found.</CommandEmpty>
-                          <CommandGroup>
+                    <PopoverContent className="w-full sm:w-[200px] p-0 bg-white border-2 border-slate-200 shadow-lg">
+                      <Command className="bg-white">
+                        <CommandInput placeholder="Search categories..." className="text-slate-900" />
+                        <CommandList className="bg-white">
+                          <CommandEmpty className="text-slate-600">No categories found.</CommandEmpty>
+                          <CommandGroup className="bg-white">
                             <CommandItem
                               value="all"
                               onSelect={() => {
@@ -586,17 +586,17 @@ const InventoryPage = () => {
                         variant="outline"
                         role="combobox"
                         aria-expanded={brandDropdownOpen}
-                        className="w-full sm:w-[200px] justify-between"
+                        className="w-full sm:w-[200px] justify-between border-2 border-slate-200 bg-white text-slate-900 hover:bg-slate-50"
                       >
                         {getSelectedBrandName()}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-full sm:w-[200px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Search brands..." />
-                        <CommandList>
-                          <CommandEmpty>No brands found.</CommandEmpty>
+                    <PopoverContent className="w-full sm:w-[200px] p-0 bg-white border-2 border-slate-200 shadow-lg">
+                      <Command className="bg-white">
+                        <CommandInput placeholder="Search brands..." className="text-slate-900" />
+                        <CommandList className="bg-white">
+                          <CommandEmpty className="text-slate-600">No brands found.</CommandEmpty>
                           <CommandGroup>
                             <CommandItem
                               value="all"
