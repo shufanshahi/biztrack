@@ -171,10 +171,10 @@ export default function UnifiedBusinessDataPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
-                    <p className="mt-4 text-gray-600">Loading...</p>
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mb-4"></div>
+                    <p className="text-slate-600 font-medium">Loading...</p>
                 </div>
             </div>
         );
@@ -185,24 +185,29 @@ export default function UnifiedBusinessDataPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
             {/* Header */}
-            <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+            <header className="bg-white/80 backdrop-blur-sm border-b-2 border-slate-200/50 shadow-sm sticky top-0 z-50">
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <Button variant="ghost" size="icon" onClick={() => router.push(`/businesses/${businessId}`)}>
                                 <ArrowLeft className="h-5 w-5" />
                             </Button>
-                            <div>
-                                <h1 className="text-2xl font-bold text-foreground">Unified Data</h1>
-                                <p className="text-sm text-muted-foreground">PostgreSQL database tables (read-only)</p>
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 shadow-lg">
+                                    <Database className="h-6 w-6 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent">Unified Data</h1>
+                                    <p className="text-sm text-slate-600 font-medium">PostgreSQL database tables (read-only)</p>
+                                </div>
                             </div>
                         </div>
 
                         {/* Business Selector */}
                         <div className="flex items-center gap-2">
-                            <Store className="h-5 w-5 text-muted-foreground" />
+                            <Store className="h-5 w-5 text-slate-600" />
                             <select
                                 value={businessId}
                                 onChange={(e) => {
@@ -238,20 +243,26 @@ export default function UnifiedBusinessDataPage() {
                 )}
 
                 {loadingBusiness ? (
-                    <div className="flex items-center justify-center py-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <div className="flex items-center justify-center py-20">
+                        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                        <span className="ml-2 text-slate-600">Loading business details...</span>
                     </div>
                 ) : business ? (
-                    <>
+                    <div>
                         {/* Business Info Card */}
                         <Card className="border-2 border-slate-200/50 bg-gradient-to-br from-white to-slate-50 shadow-xl rounded-xl overflow-hidden">
-                            <CardHeader>
+                            <CardHeader className="pb-4">
                                 <div className="flex items-center justify-between">
-                                    <div>
-                                        <CardTitle className="text-xl font-bold text-slate-800">{business.name} - Unified Data</CardTitle>
-                                        <CardDescription className="text-slate-600">
-                                            PostgreSQL database tables (read-only)
-                                        </CardDescription>
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-600 to-green-600 shadow-lg">
+                                            <Store className="h-5 w-5 text-white" />
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-xl font-bold text-slate-800">{business.name} - Unified Data</CardTitle>
+                                            <CardDescription className="text-slate-600">
+                                                PostgreSQL database tables (read-only)
+                                            </CardDescription>
+                                        </div>
                                     </div>
                                     <div className="flex gap-3">
                                         <Button
@@ -268,72 +279,111 @@ export default function UnifiedBusinessDataPage() {
 
                         {/* PostgreSQL Data Section */}
                         <Card className="border-2 border-slate-200/50 bg-gradient-to-br from-white to-slate-50 shadow-xl rounded-xl overflow-hidden">
-                            <CardHeader>
-                                <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                                    <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
-                                    PostgreSQL Database Tables
-                                </CardTitle>
-                                <CardDescription className="text-slate-600">
-                                    View your unified business data from PostgreSQL
-                                </CardDescription>
+                            <CardHeader className="pb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-600 shadow-lg">
+                                        <FileSpreadsheet className="h-5 w-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                            PostgreSQL Database Tables
+                                        </CardTitle>
+                                        <CardDescription className="text-slate-600">
+                                            View your unified business data from PostgreSQL
+                                        </CardDescription>
+                                    </div>
+                                </div>
                             </CardHeader>
                             <CardContent>
                                 {loadingPostgres ? (
-                                    <div className="flex items-center justify-center py-8">
-                                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                    <div className="flex items-center justify-center py-20">
+                                        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
                                         <span className="ml-2 text-slate-600">Loading PostgreSQL data...</span>
                                     </div>
                                 ) : postgresData.length > 0 ? (
                                     <div className="space-y-4">
                                         {postgresData.map((table, index) => (
-                                            <div key={index} className="border border-slate-200 rounded-lg p-4 hover:bg-slate-50/50 transition-colors">
+                                            <div key={index} className="border border-slate-200/70 rounded-xl p-6 hover:border-slate-300/80 transition-all duration-200 shadow-sm hover:shadow-md bg-white">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex-1">
-                                                            <button
-                                                                onClick={() => setSelectedTable(selectedTable?.table_name === table.table_name ? null : table)}
-                                                                className="text-left w-full"
-                                                            >
-                                                                <h4 className="text-sm font-medium text-indigo-600 hover:text-indigo-900">
-                                                                    {table.table_name}
-                                                                </h4>
-                                                                <p className="text-xs text-gray-500 mt-1">
-                                                                    {table.record_count} records • {table.columns.length} columns
-                                                                </p>
-                                                            </button>
+                                                        <button
+                                                            onClick={() => setSelectedTable(selectedTable?.table_name === table.table_name ? null : table)}
+                                                            className="text-left w-full group"
+                                                        >
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="p-2.5 rounded-lg bg-gradient-to-br from-slate-600 to-slate-700 shadow-sm group-hover:shadow-md transition-all duration-200">
+                                                                    <FileSpreadsheet className="h-5 w-5 text-white" />
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <h4 className="text-base font-semibold text-slate-800 group-hover:text-slate-900 transition-colors duration-200 mb-1">
+                                                                        {table.table_name}
+                                                                    </h4>
+                                                                    <div className="flex items-center gap-4 text-xs text-slate-600">
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                                                            <span className="font-semibold">{table.record_count.toLocaleString()}</span>
+                                                                            <span>records</span>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                                                            <span className="font-semibold">{table.columns.length}</span>
+                                                                            <span>columns</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="ml-4">
+                                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${selectedTable?.table_name === table.table_name ? 'bg-slate-100 rotate-180' : 'bg-slate-50 group-hover:bg-slate-100'}`}>
+                                                                        <svg className={`w-4 h-4 transition-colors duration-200 ${selectedTable?.table_name === table.table_name ? 'text-slate-700' : 'text-slate-400 group-hover:text-slate-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                                        </svg>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </button>
 
                                                             {/* Table Data View - Read-only */}
                                                             {selectedTable?.table_name === table.table_name && table.sample_data.length > 0 && (
-                                                                <div className="mt-4 overflow-x-auto">
+                                                                <div className="mt-6 overflow-x-auto">
                                                                     <div className="inline-block min-w-full align-middle">
-                                                                        <div className="overflow-hidden border border-gray-300 rounded-lg">
-                                                                            <table className="min-w-full divide-y divide-gray-300" style={{ borderCollapse: 'collapse' }}>
-                                                                                <thead className="bg-gray-100">
+                                                                        <div className="overflow-hidden border border-slate-200/60 rounded-2xl shadow-sm bg-white">
+                                                                            <table className="min-w-full" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
+                                                                                <thead>
                                                                                     <tr>
-                                                                                        <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 border-r border-gray-300 bg-gray-200 sticky left-0 z-10" style={{ minWidth: '50px', maxWidth: '50px' }}>
-                                                                                            #
+                                                                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-slate-600 bg-slate-50/80 border-b border-r border-slate-200/60 sticky left-0 z-10" style={{ minWidth: '70px', maxWidth: '70px' }}>
+                                                                                            <span className="text-slate-500">#</span>
                                                                                         </th>
                                                                                         {table.columns.map((column, idx) => (
-                                                                                            <th key={idx} className="px-3 py-2 text-left text-xs font-semibold text-gray-700 border-r border-gray-300 bg-gray-50" style={{ minWidth: '120px' }}>
-                                                                                                {column}
+                                                                                            <th key={idx} className="px-5 py-3.5 text-left text-xs font-semibold text-slate-700 bg-slate-50/80 border-b border-r border-slate-200/60 last:border-r-0" style={{ minWidth: '180px' }}>
+                                                                                                <div className="flex items-center gap-2">
+                                                                                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                                                                                                    <span className="uppercase tracking-wide">{column}</span>
+                                                                                                </div>
                                                                                             </th>
                                                                                         ))}
                                                                                     </tr>
                                                                                 </thead>
-                                                                                <tbody className="bg-white divide-y divide-gray-200">
+                                                                                <tbody>
                                                                                     {table.sample_data.map((row, rowIdx) => (
-                                                                                        <tr key={rowIdx} className="hover:bg-blue-50 transition-colors">
-                                                                                            <td className="px-2 py-1 text-center text-xs font-medium text-gray-500 border-r border-gray-300 bg-gray-50 sticky left-0 z-10">
-                                                                                                {rowIdx + 1}
+                                                                                        <tr key={rowIdx} className={`group ${rowIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
+                                                                                            <td className="px-5 py-3 text-center text-xs font-medium text-slate-500 bg-slate-50/50 border-b border-r border-slate-200/60 sticky left-0 z-10">
+                                                                                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 text-slate-600 font-semibold text-xs">
+                                                                                                    {rowIdx + 1}
+                                                                                                </span>
                                                                                             </td>
                                                                                             {table.columns.map((column, cellIdx) => {
                                                                                                 const value = row[column];
                                                                                                 return (
-                                                                                                    <td key={cellIdx} className="border-r border-gray-300 p-0">
-                                                                                                        <div className="px-3 py-2 text-xs text-gray-900 min-h-[32px] flex items-center bg-gray-50">
+                                                                                                    <td 
+                                                                                                        key={cellIdx} 
+                                                                                                        className="border-b border-r border-slate-200/60 p-0 last:border-r-0 relative"
+                                                                                                    >
+                                                                                                        <div className="px-5 py-3 text-sm text-slate-700 min-h-[48px] flex items-center transition-all duration-200 hover:bg-slate-100/50 hover:shadow-sm hover:-translate-y-0.5 cursor-default">
                                                                                     {value === '' || value === null || value === undefined ? (
-                                                                                        <span className="text-gray-300">—</span>
+                                                                                        <span className="text-slate-400 italic text-xs">—</span>
                                                                                     ) : (
-                                                                                        String(value)
+                                                                                        <span className="font-normal text-slate-800">
+                                                                                            {String(value)}
+                                                                                        </span>
                                                                                     )}
                                                                                 </div>
                                                                             </td>
@@ -345,50 +395,71 @@ export default function UnifiedBusinessDataPage() {
                                                                             </table>
                                                                         </div>
                                                                     </div>
-                                                                    <div className="mt-3 flex items-center justify-between px-2">
-                                                                        <p className="text-xs text-gray-600">
-                                                                            <span className="font-semibold">{table.record_count}</span> rows total
-                                                                            <span> • Showing {table.sample_data.length} rows</span>
-                                                                        </p>
-                                                                        <p className="text-xs text-blue-600 italic">
-                                                                            📖 Read-only view • Empty cells shown as <span className="text-gray-300">—</span>
-                                                                        </p>
+                                                                    <div className="mt-5 flex items-center justify-between px-1">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className="flex items-center gap-2 text-xs text-slate-600 bg-white px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm">
+                                                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                                                                <span className="font-semibold text-slate-700">{table.record_count.toLocaleString()}</span>
+                                                                                <span className="text-slate-500">total rows</span>
+                                                                            </div>
+                                                                            <div className="flex items-center gap-2 text-xs text-slate-600 bg-white px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm">
+                                                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                                                                <span className="font-semibold text-slate-700">{table.sample_data.length}</span>
+                                                                                <span className="text-slate-500">showing</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2 text-xs text-slate-500 bg-amber-50/50 px-3 py-1.5 rounded-lg border border-amber-200/40">
+                                                                            <Eye className="h-3.5 w-3.5 text-amber-600" />
+                                                                            <span className="font-medium text-slate-600">Read-only</span>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             )}
                                                         </div>
                                                     </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                        <div className="text-center py-20">
+                                            <div className="max-w-md mx-auto">
+                                                <div className="p-4 rounded-full bg-gradient-to-br from-slate-400 to-slate-500 shadow-lg w-fit mx-auto mb-4">
+                                                    <FileSpreadsheet className="h-12 w-12 text-white" />
                                                 </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-8">
-                                            <div className="text-gray-400 text-4xl mb-2">🗄️</div>
-                                            <h4 className="text-sm font-medium text-gray-900 mb-1">No PostgreSQL data found</h4>
-                                            <p className="text-xs text-gray-600">No tables were found in the PostgreSQL database for this business</p>
+                                                <h4 className="text-lg font-semibold text-slate-800 mb-2">No PostgreSQL data found</h4>
+                                                <p className="text-sm text-slate-600 mb-6">No tables were found in the PostgreSQL database for this business</p>
+                                                <Button
+                                                    onClick={() => router.push(`/businesses/${businessId}/raw-data`)}
+                                                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
+                                                >
+                                                    <Database className="h-4 w-4 mr-2" />
+                                                    View Raw Data
+                                                </Button>
+                                            </div>
                                         </div>
                                     )}
                             </CardContent>
                         </Card>
-                    </>
+                    </div>
                 ) : (
                     <Card className="border-2 border-slate-200/50 bg-gradient-to-br from-white to-slate-50 shadow-xl rounded-xl overflow-hidden">
-                        <CardContent className="pt-6">
-                                <div className="text-center">
-                                    <div className="text-gray-400 text-6xl mb-4">🏢</div>
-                                    <h3 className="text-lg font-medium text-slate-900 mb-2">Business not found</h3>
-                                    <p className="text-slate-600 mb-6">The business you're looking for doesn't exist or you don't have access to it.</p>
-                                    <Button
-                                        onClick={() => router.push('/businesses')}
-                                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
-                                    >
-                                        Back to Businesses
-                                    </Button>
+                        <CardContent className="pt-8 pb-8">
+                            <div className="text-center">
+                                <div className="p-4 rounded-full bg-gradient-to-br from-slate-400 to-slate-500 shadow-lg w-fit mx-auto mb-6">
+                                    <Store className="h-12 w-12 text-white" />
                                 </div>
-                            </CardContent>
-                        </Card>
+                                <h3 className="text-xl font-semibold text-slate-800 mb-2">Business not found</h3>
+                                <p className="text-slate-600 mb-6 max-w-md mx-auto">The business you're looking for doesn't exist or you don't have access to it.</p>
+                                <Button
+                                    onClick={() => router.push('/businesses')}
+                                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
+                                >
+                                    Back to Businesses
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
                 )}
-
             </main>
         </div>
     );
