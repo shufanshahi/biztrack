@@ -49,6 +49,10 @@ export default function BusinessDetailPage() {
     const [formData, setFormData] = useState<BusinessFormData>({ name: '', description: '' });
     const [submitting, setSubmitting] = useState(false);
     
+    // Business selection state
+    const [businesses, setBusinesses] = useState<Business[]>([]);
+    const [loadingBusinesses, setLoadingBusinesses] = useState(false);
+    
     // Excel upload states
     const [uploadingFiles, setUploadingFiles] = useState(false);
     const [uploadResults, setUploadResults] = useState<UploadResult[]>([]);
@@ -71,6 +75,12 @@ export default function BusinessDetailPage() {
         }
     }, [user, businessId]);
 
+    useEffect(() => {
+        if (user) {
+            fetchBusinesses();
+        }
+    }, [user]);
+
     const fetchBusiness = async () => {
         try {
             setLoadingBusiness(true);
@@ -92,6 +102,29 @@ export default function BusinessDetailPage() {
             setError('Network error while fetching business');
         } finally {
             setLoadingBusiness(false);
+        }
+    };
+
+    const fetchBusinesses = async () => {
+        try {
+            setLoadingBusinesses(true);
+            const token = localStorage.getItem('access_token');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/businesses`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setBusinesses(data.businesses || []);
+            } else {
+                console.error('Failed to fetch businesses');
+            }
+        } catch (error) {
+            console.error('Error fetching businesses:', error);
+        } finally {
+            setLoadingBusinesses(false);
         }
     };
 
@@ -413,6 +446,30 @@ export default function BusinessDetailPage() {
                             <h1 className="text-xl font-semibold text-gray-900">Business Details</h1>
                         </div>
                         <div className="flex items-center space-x-4">
+                            {/* Business Selector */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-600">Business:</span>
+                                <select
+                                    value={businessId}
+                                    onChange={(e) => {
+                                        if (e.target.value && e.target.value !== businessId) {
+                                            router.push(`/businesses/${e.target.value}`);
+                                        }
+                                    }}
+                                    className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    disabled={loadingBusinesses}
+                                >
+                                    {loadingBusinesses ? (
+                                        <option>Loading...</option>
+                                    ) : (
+                                        businesses.map((biz) => (
+                                            <option key={biz.id} value={biz.id}>
+                                                {biz.name}
+                                            </option>
+                                        ))
+                                    )}
+                                </select>
+                            </div>
                             <span className="text-gray-700">Welcome, {user.name || user.email}</span>
                         </div>
                     </div>

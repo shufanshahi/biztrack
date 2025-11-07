@@ -29,6 +29,10 @@ export default function UnifiedBusinessDataPage() {
     const [loadingBusiness, setLoadingBusiness] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Business selection state
+    const [businesses, setBusinesses] = useState<Business[]>([]);
+    const [loadingBusinesses, setLoadingBusinesses] = useState(false);
+
     // PostgreSQL data states
     const [postgresData, setPostgresData] = useState<PostgresTable[]>([]);
     const [loadingPostgres, setLoadingPostgres] = useState(false);
@@ -46,6 +50,12 @@ export default function UnifiedBusinessDataPage() {
             fetchPostgresData();
         }
     }, [user, businessId]);
+
+    useEffect(() => {
+        if (user) {
+            fetchBusinesses();
+        }
+    }, [user]);
 
     const fetchBusiness = async () => {
         try {
@@ -68,6 +78,64 @@ export default function UnifiedBusinessDataPage() {
             setError('Network error while fetching business');
         } finally {
             setLoadingBusiness(false);
+        }
+    };
+
+    const fetchBusinesses = async () => {
+        try {
+            setLoadingBusinesses(true);
+            const token = localStorage.getItem('access_token');
+            
+            // First fetch all businesses
+            const businessesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/businesses`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!businessesResponse.ok) {
+                console.error('Failed to fetch businesses');
+                return;
+            }
+
+            const businessesData = await businessesResponse.json();
+            const allBusinesses = businessesData.businesses || [];
+
+            // Filter businesses that have PostgreSQL data
+            const businessesWithData = [];
+            
+            for (const business of allBusinesses) {
+                // Always include the current business
+                if (business.id === businessId) {
+                    businessesWithData.push(business);
+                    continue;
+                }
+                
+                try {
+                    const dataResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/data/businesses/${business.id}/postgres-data`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                        },
+                    });
+                    
+                    if (dataResponse.ok) {
+                        const data = await dataResponse.json();
+                        // Check if business has any tables with data
+                        if (data.tables && data.tables.length > 0 && data.tables.some((table: any) => table.record_count > 0)) {
+                            businessesWithData.push(business);
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error checking data for business ${business.id}:`, error);
+                    // Skip this business if we can't check its data
+                }
+            }
+
+            setBusinesses(businessesWithData);
+        } catch (error) {
+            console.error('Error fetching businesses:', error);
+        } finally {
+            setLoadingBusinesses(false);
         }
     };
 
@@ -124,6 +192,30 @@ export default function UnifiedBusinessDataPage() {
                             <h1 className="text-xl font-semibold text-gray-900">Unified Business Data</h1>
                         </div>
                         <div className="flex items-center space-x-4">
+                            {/* Business Selector */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-600">Business:</span>
+                                <select
+                                    value={businessId}
+                                    onChange={(e) => {
+                                        if (e.target.value && e.target.value !== businessId) {
+                                            router.push(`/businesses/${e.target.value}/unified-data`);
+                                        }
+                                    }}
+                                    className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    disabled={loadingBusinesses}
+                                >
+                                    {loadingBusinesses ? (
+                                        <option>Loading...</option>
+                                    ) : (
+                                        businesses.map((biz) => (
+                                            <option key={biz.id} value={biz.id}>
+                                                {biz.name}
+                                            </option>
+                                        ))
+                                    )}
+                                </select>
+                            </div>
                             <span className="text-gray-700">Welcome, {user.name || user.email}</span>
                         </div>
                     </div>
