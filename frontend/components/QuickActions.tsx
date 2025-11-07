@@ -27,42 +27,54 @@ export const QuickActions = () => {
       icon: DollarSign,
       label: "Record Sale",
       description: "Quick sale entry",
-      gradient: "from-emerald-500 to-teal-500",
+      gradient: "from-emerald-600 to-teal-600",
+      bgColor: "bg-emerald-50",
+      iconColor: "text-emerald-600",
       action: () => router.push("/sales"),
     },
     {
       icon: TrendingDown,
       label: "Add Expense",
       description: "Track spending",
-      gradient: "from-red-500 to-rose-500",
+      gradient: "from-red-600 to-rose-600",
+      bgColor: "bg-red-50",
+      iconColor: "text-red-600",
       action: () => router.push("/expenses"),
     },
     {
       icon: Package,
       label: "Update Inventory",
       description: "Stock management",
-      gradient: "from-amber-500 to-orange-500",
+      gradient: "from-amber-600 to-orange-600",
+      bgColor: "bg-amber-50",
+      iconColor: "text-amber-600",
       action: () => router.push("/inventory"),
     },
     {
       icon: Plus,
       label: "New Customer",
       description: "Add customer",
-      gradient: "from-purple-500 to-pink-500",
+      gradient: "from-purple-600 to-pink-600",
+      bgColor: "bg-purple-50",
+      iconColor: "text-purple-600",
       action: () => router.push("/customers/new"),
     },
     {
       icon: ShoppingCart,
       label: "Add to Cart",
       description: "Add items to cart",
-      gradient: "from-blue-500 to-cyan-500",
+      gradient: "from-blue-600 to-cyan-600",
+      bgColor: "bg-blue-50",
+      iconColor: "text-blue-600",
       action: () => router.push("/cart"),
     },
     {
       icon: ShoppingCart,
       label: "Record Purchase",
       description: "Purchase from suppliers",
-      gradient: "from-indigo-500 to-purple-500",
+      gradient: "from-indigo-600 to-purple-600",
+      bgColor: "bg-indigo-50",
+      iconColor: "text-indigo-600",
       action: () => router.push("/purchase-orders"),
     },
   ];
@@ -88,31 +100,25 @@ export const QuickActions = () => {
             key={index}
             variant="outline"
             className={cn(
-              "group relative h-auto flex-col items-center p-5 space-y-3 overflow-hidden border-2 border-slate-200 hover:border-transparent",
-              "bg-white hover:shadow-xl transition-all duration-300 hover:scale-105"
+              "group relative h-auto flex-col items-center p-5 space-y-3 overflow-hidden border-2 border-slate-200 hover:border-slate-300",
+              "bg-white hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
             )}
             onClick={action.action}
           >
-            {/* Gradient background on hover */}
+            {/* Icon with subtle background */}
             <div className={cn(
-              "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br",
-              action.gradient
-            )} />
-            
-            {/* Icon with gradient background */}
-            <div className={cn(
-              "relative z-10 p-3 rounded-xl bg-gradient-to-br shadow-md group-hover:shadow-xl group-hover:scale-110 transition-all duration-300",
-              action.gradient
+              "relative p-3 rounded-xl shadow-sm group-hover:shadow-md transition-all duration-300",
+              action.bgColor
             )}>
-              <action.icon className="h-6 w-6 text-white" />
+              <action.icon className={cn("h-6 w-6", action.iconColor)} />
             </div>
             
             {/* Text content */}
-            <div className="relative z-10 text-center space-y-1">
-              <div className="font-bold text-sm text-slate-900 group-hover:text-white transition-colors duration-300">
+            <div className="text-center space-y-1">
+              <div className="font-bold text-sm text-slate-900">
                 {action.label}
               </div>
-              <div className="text-xs text-slate-600 group-hover:text-white/90 transition-colors duration-300">
+              <div className="text-xs text-slate-600">
                 {action.description}
               </div>
             </div>

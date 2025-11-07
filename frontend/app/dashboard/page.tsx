@@ -79,7 +79,7 @@ const Dashboard = () => {
               </Badge>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-3 drop-shadow-2xl">
-              Welcome Back! 👋
+              Welcome Back!
             </h2>
             <p className="text-xl text-white/90 font-medium max-w-2xl mx-auto drop-shadow-lg">
               Your business is growing - here&apos;s today&apos;s snapshot
