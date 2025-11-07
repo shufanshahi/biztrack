@@ -54,26 +54,34 @@ const Dashboard = () => {
 
       {/* Hero Section */}
       <div className="relative h-64 overflow-hidden">
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 animate-gradient" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40" />
+        {/* Dashboard analytics background image */}
+        <div className="absolute inset-0">
+          <img 
+            src="/dashboard-hero.jpg" 
+            alt="Dashboard Analytics" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+        
+        {/* Dark overlay for better text visibility */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-blue-900/70 to-indigo-900/80" />
         
         {/* Floating elements */}
-        <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-2xl animate-pulse" />
-        <div className="absolute bottom-10 right-20 w-32 h-32 bg-purple-300/20 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-10 left-10 w-20 h-20 bg-cyan-400/20 rounded-full blur-2xl animate-pulse" />
+        <div className="absolute bottom-10 right-20 w-32 h-32 bg-emerald-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
         
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center space-y-4 px-4">
             <div className="inline-block">
-              <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm px-4 py-2 text-sm font-semibold mb-4">
+              <Badge className="bg-cyan-400/20 text-white border-cyan-400/30 backdrop-blur-sm px-4 py-2 text-sm font-semibold mb-4">
                 <Sparkles className="h-4 w-4 mr-2 inline" />
                 Dashboard Overview
               </Badge>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">
-              Welcome Back! 
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-3 drop-shadow-2xl">
+              Welcome Back! 👋
             </h2>
-            <p className="text-xl text-white/90 font-medium max-w-2xl mx-auto">
+            <p className="text-xl text-white/90 font-medium max-w-2xl mx-auto drop-shadow-lg">
               Your business is growing - here&apos;s today&apos;s snapshot
             </p>
             <div className="flex items-center justify-center gap-6 mt-6 text-white/80 text-sm">
@@ -82,7 +90,7 @@ const Dashboard = () => {
                 <span>Live Data</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
+                <div className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
                 <span>AI Insights Active</span>
               </div>
             </div>
@@ -155,56 +163,56 @@ const Dashboard = () => {
               description="Import Excel/CSV files with AI-powered field mapping"
               icon="upload"
               href="/businesses"
-              gradient="from-primary to-primary-hover"
+              gradient="from-blue-500 to-indigo-500"
             />
             <FeatureCard
               title="Sales Management"
               description="Record sales, manage customers, and track revenue"
               icon="cashflow"
               href="/sales"
-              gradient="from-success to-success/80"
+              gradient="from-emerald-500 to-teal-500"
             />
             <FeatureCard
               title="Purchase Orders"
               description="Record purchases from suppliers and manage procurement"
               icon="inventory"
               href="/purchase-orders"
-              gradient="from-warning to-warning/80"
+              gradient="from-amber-500 to-orange-500"
             />
             <FeatureCard
               title="Demand Forecasting"
               description="AI predictions with weather, festivals, and market trends"
               icon="forecast"
               href="/forecast"
-              gradient="from-accent to-accent-hover"
+              gradient="from-purple-500 to-pink-500"
             />
             <FeatureCard
               title="Inventory Management"
               description="Smart stock optimization and reorder recommendations"
               icon="inventory"
               href="/inventory"
-              gradient="from-warning to-warning/80"
+              gradient="from-orange-500 to-red-500"
             />
             <FeatureCard
               title="Cash Flow Intelligence"
               description="Real-time monitoring and credit risk analysis"
               icon="cashflow"
               href="/cashflow"
-              gradient="from-success to-success/80"
+              gradient="from-green-500 to-emerald-500"
             />
             <FeatureCard
               title="Customer Insights"
               description="RFM segmentation and automated engagement campaigns"
               icon="customers"
               href="/customer-insights"
-              gradient="from-primary/80 to-accent/80"
+              gradient="from-cyan-500 to-blue-500"
             />
             <FeatureCard
               title="Bizmind"
               description="Natural language queries for business insights"
               icon="ai"
               href="/bizmind"
-              gradient="from-accent/80 to-primary/80"
+              gradient="from-violet-500 to-purple-500"
             />
           </div>
         </div>
