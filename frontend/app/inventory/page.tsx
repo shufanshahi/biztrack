@@ -1,10 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { InventoryAlerts } from "@/components/InventoryAlerts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Package, AlertTriangle, TrendingDown, PackageCheck, RefreshCw, Loader2, Store } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, Package, AlertTriangle, TrendingDown, PackageCheck, Loader2, Store, Search, Filter, Sparkles, Edit, Check, ChevronsUpDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import "./inventory.css";
@@ -22,52 +30,48 @@ interface InventoryStats {
   optimal_stock: number;
 }
 
-interface OptimizationResult {
-  forecast?: Array<{
-    product_id: string;
-    product_name: string;
-    demand_forecast_units: number;
-    confidence_score: number;
+interface Product {
+  product_id: string;
+  product_name: string;
+  description: string | null;
+  price: number;
+  selling_price: number;
+  status: string | null;
+  created_date: string;
+  expense: number | null;
+  stored_location: string | null;
+  category_id: number | null;
+  brand_id: number | null;
+  supplier_id: number | null;
+  product_category: {
+    category_name: string;
+  } | null;
+  product_brand: {
+    brand_name: string;
+  } | null;
+  supplier: {
+    supplier_name: string;
+  } | null;
+}
+
+interface FilterOptions {
+  categories: Array<{
+    category_id: number;
+    category_name: string;
+    product_count: number;
   }>;
-  reorder_plan?: Array<{
-    product_id: string;
-    product_name: string;
-    current_status: string;
-    reorder_point: number;
-    reorder_quantity: number;
-    estimated_cost: number;
-    priority: string;
-    rationale: string;
+  brands: Array<{
+    brand_id: number;
+    brand_name: string;
+    product_count: number;
   }>;
-  dead_stock?: Array<{
-    product_id: string;
-    product_name: string;
-    last_sale_date: string;
-    clearance_discount: number;
-    estimated_loss: number;
-    action: string;
-  }>;
-  bundles?: Array<{
-    bundle_name: string;
-    product_ids: string[];
-    product_names: string[];
-    bundle_price: number;
-    estimated_margin: number;
-    rationale: string;
-    copurchase_frequency: number;
-  }>;
-  seasonal_recommendations?: Array<{
-    action: string;
-    category: string;
-    percentage_change: number;
-    rationale: string;
-  }>;
-  summary?: {
-    total_capital_required: number;
-    expected_roi: number;
-    risk_level: string;
-    key_insights: string[];
-  };
+}
+
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 }
 
 const InventoryPage = () => {
@@ -76,11 +80,32 @@ const InventoryPage = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selectedBusiness, setSelectedBusiness] = useState<string>("");
   const [stats, setStats] = useState<InventoryStats | null>(null);
-  const [optimization, setOptimization] = useState<OptimizationResult | null>(null);
   const [loadingBusinesses, setLoadingBusinesses] = useState(true);
   const [loadingStats, setLoadingStats] = useState(false);
-  const [optimizing, setOptimizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Products state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({ categories: [], brands: [] });
+  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 50, total: 0, totalPages: 0 });
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedBrand, setSelectedBrand] = useState<string>("all");
+
+  // Dropdown open states
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
+
+  // Product selection state
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
+
+  // Modal state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Partial<Product>>({});
+  const [savingProduct, setSavingProduct] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -97,8 +122,15 @@ const InventoryPage = () => {
   useEffect(() => {
     if (selectedBusiness) {
       fetchStats();
+      fetchProducts();
     }
   }, [selectedBusiness]);
+
+  useEffect(() => {
+    if (selectedBusiness) {
+      fetchProducts();
+    }
+  }, [searchTerm, selectedCategory, selectedBrand]);
 
   const fetchBusinesses = async () => {
     try {
@@ -158,15 +190,23 @@ const InventoryPage = () => {
     }
   };
 
-  const runOptimization = async () => {
+  const fetchProducts = async (page = 1) => {
     if (!selectedBusiness) return;
 
     try {
-      setOptimizing(true);
-      setError(null);
+      setLoadingProducts(true);
       const token = localStorage.getItem("access_token");
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '50',
+      });
+
+      if (searchTerm) params.append('search', searchTerm);
+      if (selectedCategory && selectedCategory !== "all") params.append('category_id', selectedCategory);
+      if (selectedBrand && selectedBrand !== "all") params.append('brand_id', selectedBrand);
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/inventory/optimize/${selectedBusiness}`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/inventory/products/${selectedBusiness}?${params}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -174,22 +214,114 @@ const InventoryPage = () => {
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to run optimization");
-      }
+      if (!response.ok) throw new Error("Failed to fetch products");
 
       const data = await response.json();
-      setOptimization(data.optimization);
-      
-      // Refresh stats after optimization
-      fetchStats();
-    } catch (err: any) {
-      console.error("Error running optimization:", err);
-      setError(err.message || "Failed to run AI optimization");
+      setProducts(data.products || []);
+      setFilterOptions(data.filters || { categories: [], brands: [] });
+      setPagination(data.pagination || { page: 1, limit: 50, total: 0, totalPages: 0 });
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setError("Failed to load products");
     } finally {
-      setOptimizing(false);
+      setLoadingProducts(false);
     }
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setSelectedProduct(product);
+    setEditingProduct({ ...product });
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveProduct = async () => {
+    if (!selectedProduct || !selectedBusiness) return;
+
+    try {
+      setSavingProduct(true);
+      const token = localStorage.getItem("access_token");
+      
+      // Only send the editable fields
+      const updateData = {
+        description: editingProduct.description,
+        price: editingProduct.price,
+        selling_price: editingProduct.selling_price,
+        stored_location: editingProduct.stored_location,
+        expense: editingProduct.expense,
+      };
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/inventory/products/${selectedBusiness}/${selectedProduct.product_id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updateData),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to update product");
+
+      // Refresh products list
+      fetchProducts(pagination.page);
+      setIsEditModalOpen(false);
+      setSelectedProduct(null);
+      setEditingProduct({});
+    } catch (err) {
+      console.error("Error updating product:", err);
+      setError("Failed to update product");
+    } finally {
+      setSavingProduct(false);
+    }
+  };
+
+  // Helper functions for dropdown display
+  const getSelectedCategoryName = () => {
+    if (selectedCategory === "all") return "All Categories";
+    const category = filterOptions.categories.find(c => c.category_id.toString() === selectedCategory);
+    return category ? `${category.category_name} (${category.product_count})` : "All Categories";
+  };
+
+  const getSelectedBrandName = () => {
+    if (selectedBrand === "all") return "All Brands";
+    const brand = filterOptions.brands.find(b => b.brand_id.toString() === selectedBrand);
+    return brand ? `${brand.brand_name} (${brand.product_count})` : "All Brands";
+  };
+
+  // Product selection handlers
+  const handleProductSelect = (product: Product, checked: boolean) => {
+    if (checked) {
+      setSelectedProducts(prev => [...prev, product]);
+    } else {
+      setSelectedProducts(prev => prev.filter(p => p.product_id !== product.product_id));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked);
+    if (checked) {
+      setSelectedProducts(products);
+    } else {
+      setSelectedProducts([]);
+    }
+  };
+
+  const handleMarkForSale = () => {
+    if (selectedProducts.length === 0) return;
+
+    // Navigate to sales page with selected products and business
+    const productIds = selectedProducts.map(p => p.product_id).join(',');
+    router.push(`/sales?business=${selectedBusiness}&products=${productIds}`);
+  };
+
+  const handleMarkForPurchase = () => {
+    if (selectedProducts.length === 0) return;
+
+    // Navigate to purchase orders page with selected products and business
+    const productIds = selectedProducts.map(p => p.product_id).join(',');
+    router.push(`/purchase-orders?business=${selectedBusiness}&products=${productIds}`);
   };
 
   if (authLoading || loadingBusinesses) {
@@ -229,6 +361,16 @@ const InventoryPage = () => {
                   </option>
                 ))}
               </select>
+              {selectedBusiness && (
+                <Button
+                  onClick={() => router.push(`/inventory/optimize?business=${selectedBusiness}`)}
+                  variant="outline"
+                  className="ml-2"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  AI Optimize
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -321,144 +463,442 @@ const InventoryPage = () => {
               </Card>
             </div>
 
+            {/* Products Table */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>AI Inventory Optimization</CardTitle>
-                    <CardDescription>Run AI-powered analysis to get actionable insights</CardDescription>
+                    <CardTitle>Current Inventory</CardTitle>
+                    <CardDescription>View and manage your product inventory</CardDescription>
                   </div>
-                  <Button onClick={runOptimization} disabled={optimizing}>
-                    {optimizing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Analyzing...
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Run Optimization
-                      </>
-                    )}
-                  </Button>
+                  {selectedProducts.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
+                        {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
+                      </span>
+                      <div className="flex gap-2">
+                        <Button onClick={handleMarkForSale} size="sm" variant="default">
+                          Mark for Sale
+                        </Button>
+                        <Button onClick={handleMarkForPurchase} size="sm" variant="outline">
+                          Mark for Purchase
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Search and Filters */}
+                <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                  <div className="flex-1">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                      <Input
+                        placeholder="Search products by name..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Category Searchable Dropdown */}
+                  <Popover open={categoryDropdownOpen} onOpenChange={setCategoryDropdownOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={categoryDropdownOpen}
+                        className="w-full sm:w-[200px] justify-between"
+                      >
+                        {getSelectedCategoryName()}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full sm:w-[200px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Search categories..." />
+                        <CommandList>
+                          <CommandEmpty>No categories found.</CommandEmpty>
+                          <CommandGroup>
+                            <CommandItem
+                              value="all"
+                              onSelect={() => {
+                                setSelectedCategory("all");
+                                setCategoryDropdownOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  selectedCategory === "all" ? "opacity-100" : "opacity-0"
+                                }`}
+                              />
+                              All Categories
+                            </CommandItem>
+                            {filterOptions.categories.map((category) => (
+                              <CommandItem
+                                key={category.category_id}
+                                value={`${category.category_name} ${category.product_count}`}
+                                onSelect={() => {
+                                  setSelectedCategory(category.category_id.toString());
+                                  setCategoryDropdownOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={`mr-2 h-4 w-4 ${
+                                    selectedCategory === category.category_id.toString() ? "opacity-100" : "opacity-0"
+                                  }`}
+                                />
+                                {category.category_name} ({category.product_count})
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+
+                  {/* Brand Searchable Dropdown */}
+                  <Popover open={brandDropdownOpen} onOpenChange={setBrandDropdownOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={brandDropdownOpen}
+                        className="w-full sm:w-[200px] justify-between"
+                      >
+                        {getSelectedBrandName()}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full sm:w-[200px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Search brands..." />
+                        <CommandList>
+                          <CommandEmpty>No brands found.</CommandEmpty>
+                          <CommandGroup>
+                            <CommandItem
+                              value="all"
+                              onSelect={() => {
+                                setSelectedBrand("all");
+                                setBrandDropdownOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  selectedBrand === "all" ? "opacity-100" : "opacity-0"
+                                }`}
+                              />
+                              All Brands
+                            </CommandItem>
+                            {filterOptions.brands.map((brand) => (
+                              <CommandItem
+                                key={brand.brand_id}
+                                value={`${brand.brand_name} ${brand.product_count}`}
+                                onSelect={() => {
+                                  setSelectedBrand(brand.brand_id.toString());
+                                  setBrandDropdownOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={`mr-2 h-4 w-4 ${
+                                    selectedBrand === brand.brand_id.toString() ? "opacity-100" : "opacity-0"
+                                  }`}
+                                />
+                                {brand.brand_name} ({brand.product_count})
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </CardHeader>
-              {optimization && (
-                <CardContent>
-                  <div className="space-y-6">
-                    {/* Summary */}
-                    {optimization.summary && (
-                      <div className="p-4 rounded-lg border border-border bg-card/50">
-                        <h3 className="font-semibold mb-2">Summary</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Capital Required</p>
-                            <p className="text-lg font-bold">${optimization.summary.total_capital_required?.toFixed(2) || 0}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">Expected ROI</p>
-                            <p className="text-lg font-bold">{optimization.summary.expected_roi?.toFixed(1) || 0}%</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">Risk Level</p>
-                            <p className="text-lg font-bold capitalize">{optimization.summary.risk_level || 'N/A'}</p>
-                          </div>
-                        </div>
-                        {optimization.summary.key_insights && optimization.summary.key_insights.length > 0 && (
-                          <div>
-                            <p className="text-sm font-semibold mb-2">Key Insights:</p>
-                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                              {optimization.summary.key_insights.map((insight, idx) => (
-                                <li key={idx}>{insight}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Bundles */}
-                    {optimization.bundles && optimization.bundles.length > 0 && (
-                      <div>
-                        <h3 className="font-semibold mb-3">Recommended Bundles</h3>
-                        <div className="space-y-3">
-                          {optimization.bundles.slice(0, 3).map((bundle, idx) => (
-                            <div key={idx} className="flex items-start gap-4 p-4 rounded-lg border border-border bg-card">
-                              <div className="p-2 rounded-lg bg-primary/10">
-                                <Package className="h-5 w-5 text-primary" />
-                              </div>
-                              <div className="flex-1">
-                                <p className="font-semibold text-foreground">{bundle.bundle_name}</p>
-                                <p className="text-sm text-muted-foreground mb-2">{bundle.rationale}</p>
-                                <div className="flex items-center gap-4 text-sm">
-                                  <span>Price: ${bundle.bundle_price?.toFixed(2)}</span>
-                                  <span>Margin: {bundle.estimated_margin?.toFixed(1)}%</span>
-                                  <span>Co-purchase: {bundle.copurchase_frequency?.toFixed(0)}%</span>
-                                </div>
-                                <Button size="sm" className="mt-2">Create Bundle</Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Dead Stock */}
-                    {optimization.dead_stock && optimization.dead_stock.length > 0 && (
-                      <div>
-                        <h3 className="font-semibold mb-3">Dead Stock Clearance</h3>
-                        <div className="space-y-3">
-                          {optimization.dead_stock.slice(0, 5).map((item, idx) => (
-                            <div key={idx} className="flex items-start gap-4 p-4 rounded-lg border border-destructive/20 bg-destructive/5">
-                              <div className="p-2 rounded-lg bg-destructive/10">
-                                <TrendingDown className="h-5 w-5 text-destructive" />
-                              </div>
-                              <div className="flex-1">
-                                <p className="font-semibold text-foreground">{item.product_name}</p>
-                                <p className="text-sm text-muted-foreground mb-2">{item.action}</p>
-                                <div className="flex items-center gap-4 text-sm">
-                                  <span>Discount: {item.clearance_discount}%</span>
-                                  <span>Est. Loss: ${item.estimated_loss?.toFixed(2)}</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Seasonal Recommendations */}
-                    {optimization.seasonal_recommendations && optimization.seasonal_recommendations.length > 0 && (
-                      <div>
-                        <h3 className="font-semibold mb-3">Seasonal Adjustments</h3>
-                        <div className="space-y-3">
-                          {optimization.seasonal_recommendations.map((rec, idx) => (
-                            <div key={idx} className="flex items-start gap-4 p-4 rounded-lg border border-border bg-card">
-                              <div className="p-2 rounded-lg bg-warning/10">
-                                <AlertTriangle className="h-5 w-5 text-warning" />
-                              </div>
-                              <div className="flex-1">
-                                <p className="font-semibold text-foreground capitalize">{rec.action} {rec.category}</p>
-                                <p className="text-sm text-muted-foreground mb-2">{rec.rationale}</p>
-                                <div className="text-sm">
-                                  <span>Change: {rec.percentage_change > 0 ? '+' : ''}{rec.percentage_change}%</span>
-                                </div>
-                                <Button size="sm" variant="outline" className="mt-2">View Plan</Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+              
+              <CardContent>
+                {loadingProducts ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
-                </CardContent>
-              )}
+                ) : products.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No products found
+                  </div>
+                ) : (
+                  <>
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12">
+                              <Checkbox
+                                checked={selectAll}
+                                onCheckedChange={handleSelectAll}
+                              />
+                            </TableHead>
+                            <TableHead>Product ID</TableHead>
+                            <TableHead>Product Name</TableHead>
+                            <TableHead>Category</TableHead>
+                            <TableHead>Brand</TableHead>
+                            <TableHead>Supplier</TableHead>
+                            <TableHead className="text-right">Cost Price</TableHead>
+                            <TableHead className="text-right">Selling Price</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Location</TableHead>
+                            <TableHead className="w-12">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {products.map((product) => (
+                            <TableRow 
+                              key={product.product_id} 
+                              className="cursor-pointer hover:bg-muted/50"
+                            >
+                              <TableCell>
+                                <Checkbox
+                                  checked={selectedProducts.some(p => p.product_id === product.product_id)}
+                                  onCheckedChange={(checked: boolean) => handleProductSelect(product, checked)}
+                                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                                />
+                              </TableCell>
+                              <TableCell className="font-mono text-sm">{product.product_id}</TableCell>
+                              <TableCell className="font-medium">{product.product_name}</TableCell>
+                              <TableCell>{product.product_category?.category_name || '-'}</TableCell>
+                              <TableCell>{product.product_brand?.brand_name || '-'}</TableCell>
+                              <TableCell>{product.supplier?.supplier_name || '-'}</TableCell>
+                              <TableCell className="text-right">${product.price?.toFixed(2) || '0.00'}</TableCell>
+                              <TableCell className="text-right">${product.selling_price?.toFixed(2) || '0.00'}</TableCell>
+                              <TableCell>
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  product.status === 'active' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : product.status === 'inactive'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {product.status || 'N/A'}
+                                </span>
+                              </TableCell>
+                              <TableCell>{product.stored_location || '-'}</TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditProduct(product);
+                                  }}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    
+                    {/* Pagination */}
+                    {pagination.totalPages > 1 && (
+                      <div className="flex items-center justify-between mt-4">
+                        <div className="text-sm text-muted-foreground">
+                          Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} products
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fetchProducts(pagination.page - 1)}
+                            disabled={pagination.page <= 1}
+                          >
+                            Previous
+                          </Button>
+                          <span className="text-sm">
+                            Page {pagination.page} of {pagination.totalPages}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fetchProducts(pagination.page + 1)}
+                            disabled={pagination.page >= pagination.totalPages}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </CardContent>
             </Card>
-
-            <InventoryAlerts businessId={selectedBusiness} />
           </>
         )}
       </main>
+
+      {/* Edit Product Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-background border shadow-xl">
+          <DialogHeader>
+            <DialogTitle>Edit Product</DialogTitle>
+            <DialogDescription>
+              Update product information and settings.
+            </DialogDescription>
+          </DialogHeader>
+
+          {editingProduct && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="product_id">Product ID</Label>
+                  <Input
+                    id="product_id"
+                    value={editingProduct.product_id || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="product_name">Product Name</Label>
+                  <Input
+                    id="product_name"
+                    value={editingProduct.product_name || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={editingProduct.description || ''}
+                  onChange={(e) => setEditingProduct(prev => ({ ...prev, description: e.target.value }))}
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="price">Cost Price</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    value={editingProduct.price || ''}
+                    onChange={(e) => setEditingProduct(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="selling_price">Selling Price</Label>
+                  <Input
+                    id="selling_price"
+                    type="number"
+                    step="0.01"
+                    value={editingProduct.selling_price || ''}
+                    onChange={(e) => setEditingProduct(prev => ({ ...prev, selling_price: parseFloat(e.target.value) || 0 }))}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={editingProduct.status || ''}
+                    disabled
+                  >
+                    <SelectTrigger className="bg-muted">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="stored_location">Storage Location</Label>
+                  <Input
+                    id="stored_location"
+                    value={editingProduct.stored_location || ''}
+                    onChange={(e) => setEditingProduct(prev => ({ ...prev, stored_location: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category_id">Category ID</Label>
+                  <Input
+                    id="category_id"
+                    type="number"
+                    value={editingProduct.category_id || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="brand_id">Brand ID</Label>
+                  <Input
+                    id="brand_id"
+                    type="number"
+                    value={editingProduct.brand_id || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="supplier_id">Supplier ID</Label>
+                  <Input
+                    id="supplier_id"
+                    type="number"
+                    value={editingProduct.supplier_id || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="expense">Expense</Label>
+                <Input
+                  id="expense"
+                  type="number"
+                  step="0.01"
+                  value={editingProduct.expense || ''}
+                  onChange={(e) => setEditingProduct(prev => ({ ...prev, expense: parseFloat(e.target.value) || undefined }))}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditModalOpen(false)}
+              disabled={savingProduct}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveProduct}
+              disabled={savingProduct}
+            >
+              {savingProduct ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

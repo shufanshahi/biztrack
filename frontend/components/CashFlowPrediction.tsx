@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, Line, LineChart } from "recharts";
 import { Badge } from "@/components/ui/badge";
+import { DollarSign, TrendingUp, AlertCircle } from "lucide-react";
 
 interface CashFlowPrediction {
   prediction_date: string;
@@ -62,7 +63,10 @@ export const CashFlowPrediction = ({ predictions }: CashFlowPredictionProps) => 
   const isRealData = predictions && predictions.length > 0;
 
   return (
-    <Card>
+    <Card className="relative border-2 border-slate-200/50 bg-gradient-to-br from-white via-white to-emerald-50/30 shadow-xl hover:shadow-2xl transition-all duration-500 group overflow-hidden">
+      {/* Top gradient accent */}
+      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
+      
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>

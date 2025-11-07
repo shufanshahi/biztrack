@@ -11,9 +11,16 @@ const { router: langchainRoutes } = require('./routes/langchain');
 const { router: ragRoutes } = require('./routes/rag');
 const businessRoutes = require('./routes/business');
 const dataRoutes = require('./routes/data');
+const inventoryRoutes = require('./routes/inventory');
+const mappingRoutes = require('./routes/mapping');
+const testRoutes = require('./routes/test');
+const customerInsightsRoutes = require('./routes/customer_insights');
 const forecastRoutes = require('./routes/forecast');
 const analyticsRoutes = require('./routes/analytics');
 const cashflowRoutes = require('./routes/cashflow_simplified');
+const bizmindRoutes = require('./routes/bizmind');
+const salesRoutes = require('./routes/sales');
+const purchaseOrdersRoutes = require('./routes/purchase-orders');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -45,9 +52,16 @@ app.use('/api/langchain', langchainRoutes);
 app.use('/api/rag', ragRoutes);
 app.use('/api/businesses', businessRoutes);
 app.use('/api/data', dataRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/mapping', mappingRoutes);
+app.use('/api/test', testRoutes);
+app.use('/api/customer-insights', customerInsightsRoutes);
 app.use('/api/forecast', forecastRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/cashflow', cashflowRoutes);
+app.use('/api/bizmind', bizmindRoutes);
+app.use('/api/sales', salesRoutes);
+app.use('/api/purchase-orders', purchaseOrdersRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
