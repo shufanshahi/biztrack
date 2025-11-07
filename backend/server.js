@@ -13,6 +13,7 @@ const businessRoutes = require('./routes/business');
 const dataRoutes = require('./routes/data');
 const forecastRoutes = require('./routes/forecast');
 const analyticsRoutes = require('./routes/analytics');
+const cashflowRoutes = require('./routes/cashflow_simplified');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,6 +47,7 @@ app.use('/api/businesses', businessRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/forecast', forecastRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/cashflow', cashflowRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
