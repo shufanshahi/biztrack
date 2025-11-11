@@ -2,6 +2,9 @@
 
 A full-stack business management application with Next.js frontend and Express.js backend, using Supabase for authentication.
 
+[Demo Video Link](https://youtu.be/STNoXqq8kQM?si=4kuPF8W7zIzb8riI)
+
+
 ## Features
 
 - **User Authentication**: Register, login, logout, and password reset
@@ -13,9 +16,10 @@ A full-stack business management application with Next.js frontend and Express.j
 ## Tech Stack
 
 ### Frontend
-- Next.js 14
+- Next.js 16
 - TypeScript
 - Tailwind CSS
+- Shadcn
 - React Context for state management
 
 ### Backend
@@ -190,13 +194,6 @@ biztrack/
 ### Frontend (.env.local)
 - `NEXT_PUBLIC_API_URL` - Backend API URL (default: http://localhost:5000/api)
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
 
 ## License
 
